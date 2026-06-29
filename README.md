@@ -1,56 +1,167 @@
-# 🍬 Doce Cuidado — DM1 Companion App
+# Doce Cuidado
 
-**Status:** Fase 1 (Conceito & Fundamentos) → Estruturação
+App-companheiro para famílias de crianças com diabetes (foco em DM1). Diário de cuidados, orientação com IA, receitas, modo crise e visão para médicos/cuidadores.
 
-> *"O app que segura a mão da família no cuidado da criança com diabetes."*
+> *"No dia normal, o app conversa. No pânico, o app comanda."*
 
-## 📁 Estrutura do Projeto
+**Status:** MVP funcional · Supabase em produção · build Android (EAS) em andamento  
+**Repositório:** https://github.com/feliopz/docecuidado  
+**Expo / EAS:** projeto `21065fe7-d765-4a73-ae97-ba16669f965f` · owner `feliopzs-team`
+
+---
+
+## O que já está pronto
+
+| Área | Status |
+|------|--------|
+| Onboarding (responsável, cuidador, médico) | ✅ |
+| Registro de glicemia, insulina e nutrição (câmera + IA) | ✅ |
+| Diário, gráficos, relatórios PDF | ✅ |
+| Modo crise + ligação 192 | ✅ |
+| Aprender (lições + quiz) | ✅ |
+| Receitas (50 no Supabase + recomendação por IA) | ✅ |
+| Multi-criança, convites, visão médico | ✅ |
+| Auth Supabase + migração local → nuvem | ✅ |
+| Notificações locais (lembretes de glicemia) | ✅ |
+| Assets (Gotinha) + ícones Android/iOS | ✅ |
+| Schema SQL + seeds documentados | ✅ |
+
+**Antes da Play Store:** verificação da conta Google Play, política de privacidade (URL), testes no APK/AAB real, disclaimers finais de compliance.
+
+---
+
+## Stack
+
+- **App:** React Native 0.81 + Expo SDK 54 + Expo Router 6 + TypeScript
+- **Backend:** Supabase (PostgreSQL + Auth)
+- **IA:** OpenRouter (texto + visão para OCR de glicosímetro e análise de refeições)
+- **Build:** EAS (`eas.json` em `src/`)
+- **Posicionamento:** Health & Fitness (não dispositivo médico)
+
+---
+
+## Estrutura do repositório
 
 ```
 doce-cuidado/
-├── README.md                      (este arquivo)
-├── docs/
-│   ├── PRODUCT.md                (visão geral, brand, conceito)
-│   ├── ARCHITECTURE.md            (stack, decisões técnicas)
-│   ├── AI_STRATEGY.md             (7 aplicações de IA)
-│   ├── COMPLIANCE.md              (posicionamento regulatório, LGPD)
-│   ├── features/
-│   │   ├── 01-onboarding.md
-│   │   ├── 02-dashboard.md
-│   │   ├── 03-glucose-logging.md
-│   │   ├── 04-insulin-logging.md
-│   │   ├── 05-nutrition.md
-│   │   ├── 06-learn-train.md
-│   │   ├── 07-crisis-mode.md
-│   │   ├── 08-history-diary.md
-│   │   └── 09-family-profile.md
-│   └── research/
-│       ├── protocols-hypo-hyper.md
-│       └── references.md
-├── mockup/
-│   └── index.html                 (interactive prototype)
-├── src/
-│   ├── app.json                   (Expo config — criado depois)
-│   ├── package.json               (deps — criado depois)
-│   ├── src/                       (React Native code — criado depois)
-│   └── ...
-├── .env.example                   (Supabase + OpenRouter keys template)
-└── .gitignore
+├── README.md
+├── DOCS_INDEX.md              # índice da documentação
+├── docs/                      # produto, arquitetura, compliance, SQL, receitas
+├── assets/                    # imagens originais (GPT) — fonte dos ícones
+├── scripts/                   # EAS build, seed de receitas
+├── tools/                     # painel HTML admin de receitas
+└── src/                       # ← app Expo (código executável)
+    ├── app/                   # rotas (expo-router)
+    ├── components/
+    ├── lib/                   # store, supabase, auth, llm, notifications
+    ├── assets/                # ícones PNG processados + marketing
+    ├── app.json
+    ├── eas.json
+    └── package.json
 ```
 
-## 🚀 Próximos passos
+O código do app fica em **`src/`**, não na raiz do repo.
 
-1. **Reorganizar docs** ← você está aqui
-2. **Revisar estrutura e strategy**
-3. **Setup dev environment** (Expo, Node, git)
-4. **Iniciar React Native + Supabase**
+---
 
-Quando disser "vamos começar", a gente inicializa tudo.
+## Desenvolvimento local
 
-## 📋 Credenciais
+### Pré-requisitos
 
-Você fornecerá:
-- Supabase project URL + anon key
-- OpenRouter API key (ou usamos free tier no MVP)
+- Node.js 20+ (recomendado para Expo 54)
+- npm
 
-Placeholder em `.env.example`.
+### Setup
+
+```bash
+git clone https://github.com/feliopz/docecuidado.git
+cd docecuidado/src
+
+npm install --legacy-peer-deps
+
+# Variáveis do app (criar src/.env.local):
+# EXPO_PUBLIC_SUPABASE_URL=
+# EXPO_PUBLIC_SUPABASE_ANON_KEY=
+# EXPO_PUBLIC_OPENROUTER_API_KEY=
+
+npm start          # Expo Go
+npm run android    # emulador / device
+```
+
+> **Notificações:** lembretes locais só funcionam de forma confiável em **build nativo** (APK/AAB), não no Expo Go.
+
+### Variáveis de ambiente
+
+| Arquivo | Uso |
+|---------|-----|
+| `src/.env.local` | Chaves do app (Expo) — **não commitar** |
+| `.env` (raiz) | Opcional: MCP Supabase local |
+| `.env.example` | Modelo sem segredos |
+
+---
+
+## Supabase
+
+Scripts em `docs/`:
+
+1. `docs/supabase-schema.sql` — tabelas principais
+2. `docs/supabase-recipes-seed.sql` — tabela `recipes` + receitas iniciais
+
+Gerenciar receitas depois: abrir `tools/recipes-admin.html` no navegador (usar `service_role` apenas em ambiente seguro).
+
+---
+
+## Build Android (EAS)
+
+Comandos sempre a partir de **`src/`**:
+
+```bash
+cd src
+
+# login (uma vez)
+npx eas-cli login
+
+# projeto já vinculado — ID em app.json → extra.eas.projectId
+
+# APK para testar (notificações, câmera, etc.)
+npx eas-cli build --platform android --profile preview
+
+# AAB para Play Store
+npx eas-cli build --platform android --profile production
+```
+
+Ou da raiz: `bash scripts/eas-build-preview.sh` (requer `EXPO_TOKEN` ou login ativo).
+
+### Regenerar ícones a partir dos PNGs originais
+
+```bash
+bash src/assets/generate-assets.sh
+```
+
+(Lê de `assets/` na raiz e grava em `src/assets/`.)
+
+---
+
+## Documentação
+
+| Doc | Conteúdo |
+|-----|----------|
+| [docs/PRODUCT.md](docs/PRODUCT.md) | Visão, brand, Gotinha, navegação |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Stack e decisões técnicas |
+| [docs/COMPLIANCE.md](docs/COMPLIANCE.md) | LGPD, Play Store, disclaimers |
+| [docs/AI_STRATEGY.md](docs/AI_STRATEGY.md) | Uso de IA no produto |
+| [DOCS_INDEX.md](DOCS_INDEX.md) | Índice completo |
+
+---
+
+## Papéis no app
+
+- **Responsável** — cadastra criança, registra dados, convida cuidadores/médico
+- **Cuidador** — entra com código de convite, registra e consulta
+- **Médico** — visão de pacientes, métricas e relatórios (sem editar perfil da criança)
+
+---
+
+## Licença
+
+Projeto privado — uso restrito aos mantenedores.

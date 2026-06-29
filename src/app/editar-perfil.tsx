@@ -1,0 +1,246 @@
+import { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
+import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, radius, fontSize, spacing } from '../constants/theme';
+import { Card } from '../components/Card';
+import { Button } from '../components/Button';
+import { Chip } from '../components/Chip';
+import Icon from '../components/Icon';
+import ScrollPicker from '../components/ScrollPicker';
+import { getChild } from '../lib/store';
+import { upsertChild } from '../lib/supabase-db';
+import { InsulinType, INSULIN_LABELS, Child, Diagnosis, DIAGNOSIS_LABELS, Allergen, ALLERGEN_LABELS } from '../types';
+
+const DIAGNOSIS_OPTIONS: { key: Diagnosis; label: string }[] = [
+  { key: 'dm1', label: 'Tipo 1' },
+  { key: 'dm2', label: 'Tipo 2' },
+  { key: 'outro', label: 'Outro' },
+  { key: 'nao_sei', label: 'Não sei' },
+];
+
+const ALLERGEN_OPTIONS = Object.entries(ALLERGEN_LABELS) as [Allergen, string][];
+
+export default function EditarPerfil() {
+  const insets = useSafeAreaInsets();
+  const [child, setChild] = useState<Child | null>(null);
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState<'boy' | 'girl' | null>(null);
+  const [insulinTypes, setInsulinTypes] = useState<InsulinType[]>([]);
+  const [targetMin, setTargetMin] = useState(70);
+  const [targetMax, setTargetMax] = useState(180);
+  const [diagnosis, setDiagnosis] = useState<Diagnosis>('dm1');
+  const [allergies, setAllergies] = useState<Allergen[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  const toggleAllergy = (a: Allergen) =>
+    setAllergies(prev => prev.includes(a) ? prev.filter(x => x !== a) : [...prev, a]);
+
+  useEffect(() => {
+    getChild().then(c => {
+      if (!c) return;
+      setChild(c);
+      setName(c.name);
+      setGender(c.gender ?? null);
+      setInsulinTypes(c.insulin_types ?? []);
+      setTargetMin(c.glucose_target_min ?? 70);
+      setTargetMax(c.glucose_target_max ?? 180);
+      setDiagnosis(c.diagnosis ?? 'dm1');
+      setAllergies(c.allergies ?? []);
+    });
+  }, []);
+
+  const toggleInsulin = (type: InsulinType) => {
+    setInsulinTypes(prev =>
+      prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type],
+    );
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      Alert.alert('Atenção', 'O nome da criança é obrigatório.');
+      return;
+    }
+    if (targetMin >= targetMax) {
+      Alert.alert('Atenção', 'O mínimo deve ser menor que o máximo de glicemia.');
+      return;
+    }
+    if (insulinTypes.length === 0) {
+      Alert.alert('Atenção', 'Selecione pelo menos um tipo de insulina.');
+      return;
+    }
+
+    setSaving(true);
+    const updated: Child = {
+      ...(child!),
+      name: name.trim(),
+      gender: gender ?? undefined,
+      diagnosis,
+      allergies,
+      insulin_types: insulinTypes,
+      glucose_target_min: targetMin,
+      glucose_target_max: targetMax,
+    };
+    await upsertChild(updated);
+    setSaving(false);
+    router.back();
+  };
+
+  return (
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 32 }]}
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.topbar}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Icon name="back" size={22} color={colors.text2} />
+        </TouchableOpacity>
+        <Text style={styles.title}>Editar Perfil</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <Card>
+        <Text style={styles.label}>Nome da criança</Text>
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder="Nome ou apelido"
+          placeholderTextColor={colors.text3}
+          autoCapitalize="words"
+        />
+      </Card>
+
+      <Card>
+        <Text style={styles.label}>Gênero</Text>
+        <View style={styles.genderRow}>
+          <TouchableOpacity
+            style={[styles.genderBtn, gender === 'boy' && styles.genderSelected]}
+            onPress={() => setGender('boy')}
+          >
+            <Icon name="male" size={32} color={gender === 'boy' ? colors.red : colors.text2} />
+            <Text style={[styles.genderLabel, gender === 'boy' && styles.genderLabelSelected]}>Menino</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.genderBtn, gender === 'girl' && styles.genderSelected]}
+            onPress={() => setGender('girl')}
+          >
+            <Icon name="female" size={32} color={gender === 'girl' ? colors.red : colors.text2} />
+            <Text style={[styles.genderLabel, gender === 'girl' && styles.genderLabelSelected]}>Menina</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.genderBtn, gender === null && styles.genderSelected]}
+            onPress={() => setGender(null)}
+          >
+            <Icon name="profile" size={32} color={gender === null ? colors.red : colors.text2} />
+            <Text style={[styles.genderLabel, gender === null && styles.genderLabelSelected]}>Prefiro não dizer</Text>
+          </TouchableOpacity>
+        </View>
+      </Card>
+
+      <Card>
+        <Text style={styles.label}>Diagnóstico</Text>
+        <View style={styles.chips}>
+          {DIAGNOSIS_OPTIONS.map(({ key, label }) => (
+            <Chip key={key} icon="glucose" label={label} selected={diagnosis === key} onPress={() => setDiagnosis(key)} />
+          ))}
+        </View>
+        <Text style={styles.hint}>{DIAGNOSIS_LABELS[diagnosis]}</Text>
+      </Card>
+
+      <Card>
+        <Text style={styles.label}>Alergias alimentares</Text>
+        <Text style={styles.hint}>Receitas com esses ingredientes não serão recomendadas.</Text>
+        <View style={[styles.chips, { marginTop: 8 }]}>
+          {ALLERGEN_OPTIONS.map(([key, label]) => (
+            <Chip key={key} icon="warning" label={label} selected={allergies.includes(key)} onPress={() => toggleAllergy(key)} />
+          ))}
+        </View>
+      </Card>
+
+      <Card>
+        <Text style={styles.label}>Insulinas utilizadas</Text>
+        <View style={styles.chips}>
+          {(Object.entries(INSULIN_LABELS) as [InsulinType, { icon: string; label: string }][]).map(
+            ([key, { icon, label }]) => (
+              <Chip
+                key={key}
+                icon={icon}
+                label={label}
+                selected={insulinTypes.includes(key)}
+                onPress={() => toggleInsulin(key)}
+              />
+            ),
+          )}
+        </View>
+      </Card>
+
+      <Card>
+        <Text style={styles.label}>Metas de glicemia (mg/dL)</Text>
+        <Text style={styles.hint}>Esses números o médico que define. Ajuste conforme indicação.</Text>
+        <View style={styles.pickersRow}>
+          <View style={styles.pickerWrap}>
+            <Text style={[styles.pickerLabel, { color: colors.green }]}>Mínimo</Text>
+            <ScrollPicker min={50} max={120} step={5} value={targetMin} onChange={setTargetMin} color={colors.green} />
+          </View>
+          <View style={styles.pickerDivider} />
+          <View style={styles.pickerWrap}>
+            <Text style={[styles.pickerLabel, { color: colors.red }]}>Máximo</Text>
+            <ScrollPicker min={120} max={300} step={5} value={targetMax} onChange={setTargetMax} color={colors.red} />
+          </View>
+        </View>
+        <Text style={styles.targetPreview}>{targetMin} — {targetMax} mg/dL</Text>
+      </Card>
+
+      <Button
+        title={saving ? 'Salvando...' : 'Salvar alterações'}
+        onPress={handleSave}
+        disabled={saving}
+      />
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.bg },
+  content: { padding: spacing.lg },
+  topbar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    backgroundColor: colors.card, padding: 12, borderRadius: radius.lg,
+    marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06, shadowRadius: 16, elevation: 2,
+  },
+  backBtn: { padding: 4 },
+  title: { fontSize: 16, fontWeight: '700', color: colors.text },
+  label: { fontSize: 13, fontWeight: '600', color: colors.text2, marginBottom: 10 },
+  hint: { fontSize: 12, color: colors.text3, marginBottom: 10 },
+  input: {
+    padding: 14, borderWidth: 2, borderColor: colors.border,
+    borderRadius: radius.md, fontSize: fontSize.md,
+    backgroundColor: '#F8F9FA', color: colors.text,
+  },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  genderRow: { flexDirection: 'row', gap: 8 },
+  genderBtn: {
+    flex: 1, alignItems: 'center', paddingVertical: 16,
+    borderRadius: radius.lg, borderWidth: 2, borderColor: colors.border,
+    backgroundColor: colors.card, gap: 6,
+  },
+  genderSelected: { borderColor: colors.red, backgroundColor: '#FDEDEC' },
+  genderLabel: { fontSize: 12, fontWeight: '600', color: colors.text2, textAlign: 'center' },
+  genderLabelSelected: { color: colors.red },
+  pickersRow: { flexDirection: 'row', alignItems: 'flex-start', marginVertical: 8 },
+  pickerWrap: { flex: 1, alignItems: 'center', gap: 4 },
+  pickerLabel: { fontSize: 13, fontWeight: '700' },
+  pickerDivider: { width: 2, backgroundColor: colors.border, alignSelf: 'stretch', marginHorizontal: 8, marginTop: 24 },
+  targetPreview: { fontSize: 18, fontWeight: '700', color: colors.text, textAlign: 'center', marginTop: 8 },
+});

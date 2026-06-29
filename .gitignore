@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+.expo/
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE / local tooling
+.vscode/
+.idea/
+.cursor/
+.claude/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+coverage/
+*.lcov
+
+# Cache
+.cache/
+*.log
+
+# Build artifacts
+*.apk
+*.aab
+*.ipa
+*.aar
+
+# Secrets
+secrets.json
+credentials.json
+.mcp.json
+
+# Legacy / local debug
+src-old/
+debug/
+
+# Node
+npm-debug.log
+yarn-error.log
+pnpm-debug.log

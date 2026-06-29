@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Doce Cuidado — Admin de Receitas</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#FFF5EE;color:#1a1a1a;min-height:100vh}
+  header{background:#E74C3C;color:#fff;padding:16px 24px;display:flex;align-items:center;gap:12px}
+  header h1{font-size:20px;font-weight:700}
+  header span{font-size:13px;opacity:.8}
+  .setup{background:#fff;border:2px solid #E74C3C;border-radius:12px;padding:20px;margin:24px auto;max-width:700px}
+  .setup h2{font-size:15px;font-weight:700;color:#E74C3C;margin-bottom:10px}
+  .setup input{width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:13px;margin-bottom:8px}
+  .btn{background:#E74C3C;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+  .btn:hover{background:#c0392b}
+  .btn-outline{background:#fff;color:#E74C3C;border:2px solid #E74C3C}
+  .btn-green{background:#27AE60}
+  .btn-sm{padding:6px 12px;font-size:12px}
+  .container{max-width:900px;margin:0 auto;padding:24px}
+  .toolbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+  .toolbar h2{font-size:18px;font-weight:700;flex:1}
+  .recipe-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .recipe-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .recipe-card img{width:100%;height:120px;object-fit:cover}
+  .recipe-card .no-img{height:90px;background:#f4f4f4;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:12px}
+  .recipe-card .body{padding:12px}
+  .recipe-card .title{font-size:14px;font-weight:700;margin-bottom:4px}
+  .recipe-card .meta{font-size:11px;color:#888;margin-bottom:8px}
+  .recipe-card .tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+  .tag{background:#FEF9E7;border:1px solid #F9CA24;color:#b8860b;font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600}
+  .tag.green{background:#D5F5E3;border-color:#27AE60;color:#1E8449}
+  .recipe-card .actions{display:flex;gap:6px}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;overflow-y:auto;padding:20px}
+  .modal-overlay.open{display:flex;align-items:flex-start;justify-content:center}
+  .modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:660px;margin:auto}
+  .modal h2{font-size:18px;font-weight:700;margin-bottom:16px;color:#E74C3C}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .form-group{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+  .form-group label{font-size:12px;font-weight:600;color:#555}
+  .form-group input,.form-group textarea,.form-group select{padding:9px;border:2px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit}
+  .form-group textarea{resize:vertical;min-height:72px}
+  .form-group input:focus,.form-group textarea:focus{border-color:#E74C3C;outline:none}
+  .form-group small{font-size:11px;color:#888}
+  .chips-group{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{padding:5px 11px;border-radius:20px;border:2px solid #ddd;font-size:12px;cursor:pointer;font-weight:600;color:#555;background:#fff;transition:.15s}
+  .chip.selected{border-color:#E74C3C;background:#FEF2F2;color:#E74C3C}
+  .status{padding:12px;border-radius:8px;font-size:13px;font-weight:600;margin-top:12px;display:none}
+  .status.ok{background:#D5F5E3;color:#1E8449;display:block}
+  .status.err{background:#FDEDEC;color:#c0392b;display:block}
+  .loading{opacity:.6;pointer-events:none}
+  .stat-bar{display:flex;gap:16px;background:#fff;padding:12px 16px;border-radius:12px;margin-bottom:16px;flex-wrap:wrap}
+  .stat{display:flex;flex-direction:column;gap:2px}
+  .stat .n{font-size:22px;font-weight:800;color:#E74C3C}
+  .stat .l{font-size:11px;color:#888}
+  .empty{text-align:center;padding:60px 20px;color:#aaa}
+  .search{padding:9px 12px;border:2px solid #ddd;border-radius:8px;font-size:13px;min-width:180px}
+  .search:focus{border-color:#E74C3C;outline:none}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Doce Cuidado — Admin de Receitas</h1>
+    <span id="connStatus">Configure a conexão abaixo</span>
+  </div>
+</header>
+
+<!-- Setup panel -->
+<div class="setup" id="setupPanel">
+  <h2>Configurar conexão com Supabase</h2>
+  <input id="supabaseUrl" placeholder="Supabase URL  (ex: https://xyz.supabase.co)" value="https://SEU_PROJECT_REF.supabase.co">
+  <input id="supabaseKey" placeholder="Supabase anon key ou service_role key" value="">
+  <button class="btn" onclick="connect()">Conectar</button>
+  <p style="font-size:11px;color:#888;margin-top:8px">Use a <b>service_role key</b> para poder inserir/editar (disponível em Supabase → Project Settings → API). A anon key só funciona se as políticas RLS permitirem.</p>
+</div>
+
+<div class="container" id="main" style="display:none">
+  <div class="stat-bar" id="statBar">
+    <div class="stat"><span class="n" id="statTotal">0</span><span class="l">Receitas</span></div>
+    <div class="stat"><span class="n" id="statSlots">—</span><span class="l">Refeições cobertas</span></div>
+  </div>
+
+  <div class="toolbar">
+    <h2>Receitas</h2>
+    <input class="search" id="searchBox" placeholder="Buscar..." oninput="renderGrid()">
+    <button class="btn btn-green" onclick="openNew()">+ Nova receita</button>
+    <button class="btn btn-outline btn-sm" onclick="loadRecipes()">Recarregar</button>
+  </div>
+
+  <div class="recipe-grid" id="grid"></div>
+  <div class="empty" id="emptyState" style="display:none">Nenhuma receita encontrada.</div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Nova Receita</h2>
+
+    <div class="form-row">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>ID (slug único, sem espaços)</label>
+        <input id="fId" placeholder="ex: frango-grelhado-legumes">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Título</label>
+        <input id="fTitle" placeholder="Nome da receita">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Descrição (1-2 frases)</label>
+      <textarea id="fDesc" rows="2"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>URL da imagem (opcional)</label>
+        <input id="fImage" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label>Tempo de preparo (min)</label>
+        <input id="fPrep" type="number" value="30" min="5" max="180">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Dificuldade</label>
+        <select id="fDiff">
+          <option value="facil">Fácil</option>
+          <option value="media">Média</option>
+          <option value="dificil">Difícil</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Refeições (selecione todas que se aplicam)</label>
+      <div class="chips-group" id="slotsChips"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Categorias de recomendação</label>
+      <div class="chips-group" id="catsChips"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Alergênios que esta receita CONTÉM</label>
+      <div class="chips-group" id="allerChips"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Ingredientes (um por linha)</label>
+      <textarea id="fIngr" rows="5" placeholder="2 ovos&#10;1 xícara de leite&#10;..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Modo de preparo (um passo por linha)</label>
+      <textarea id="fSteps" rows="5" placeholder="Passo 1&#10;Passo 2&#10;..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Informação nutricional (por porção)</label>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Porções</label><input id="nServ" type="number" value="1" min="1">
+        </div>
+        <div class="form-group">
+          <label>Calorias (kcal)</label><input id="nCal" type="number" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Carboidratos (g)</label><input id="nCarb" type="number" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Proteína (g)</label><input id="nProt" type="number" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Gordura (g)</label><input id="nFat" type="number" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>Fibra (g, opcional)</label><input id="nFib" type="number" min="0">
+        </div>
+        <div class="form-group">
+          <label>Índice Glicêmico</label>
+          <select id="nGi">
+            <option value="baixo">Baixo</option>
+            <option value="médio" selected>Médio</option>
+            <option value="alto">Alto</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Notas para diabetes (opcional)</label>
+      <textarea id="fNotes" rows="2" placeholder="Por que esta receita é boa para crianças com DM1..."></textarea>
+    </div>
+
+    <div id="saveStatus" class="status"></div>
+
+    <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+      <button class="btn" id="btnSave" onclick="saveRecipe()">Salvar receita</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SLOTS = {cafe_da_manha:'Café da manhã',almoco:'Almoço',jantar:'Jantar',lanche:'Lanche'};
+const CATS = {
+  equilibrada:'Equilibrada',baixo_indice_glicemico:'Baixo IG',rica_fibra:'Rica fibra',
+  rica_proteina:'Rica proteína',baixo_carbo:'Baixo carbo',carbo_complexo:'Carbo complexo',
+  pos_hipo:'Pós-hipoglicemia',pos_hiper:'Pós-hiperglicemia',lanche_leve:'Lanche leve'
+};
+const ALLER = {
+  leite:'Leite',ovo:'Ovo',gluten:'Glúten',amendoim:'Amendoim',
+  castanhas:'Castanhas',soja:'Soja',peixe:'Peixe',frutos_do_mar:'Frutos do mar',
+  gergelim:'Gergelim',mel:'Mel',corantes:'Corantes'
+};
+
+let supaUrl='', supaKey='', allRecipes=[], editingId=null;
+let selectedSlots=new Set(), selectedCats=new Set(), selectedAllers=new Set();
+
+function buildChips(containerId, options, set, styleClass='') {
+  const c = document.getElementById(containerId);
+  c.innerHTML='';
+  Object.entries(options).forEach(([k,v])=>{
+    const el=document.createElement('button');
+    el.className='chip'+(set.has(k)?' selected':'');
+    el.textContent=v;
+    el.onclick=()=>{ set.has(k)?set.delete(k):set.add(k); el.className='chip'+(set.has(k)?' selected':''); };
+    c.appendChild(el);
+  });
+}
+
+async function connect() {
+  supaUrl = document.getElementById('supabaseUrl').value.trim().replace(/\/$/,'');
+  supaKey = document.getElementById('supabaseKey').value.trim();
+  if (!supaUrl || !supaKey) { alert('Preencha URL e Key.'); return; }
+  await loadRecipes();
+}
+
+async function loadRecipes() {
+  document.getElementById('connStatus').textContent='Carregando...';
+  try {
+    const r = await fetch(`${supaUrl}/rest/v1/recipes?select=*&order=title.asc`, {
+      headers:{ apikey: supaKey, Authorization:`Bearer ${supaKey}`, 'Content-Type':'application/json' }
+    });
+    if (!r.ok) throw new Error(await r.text());
+    allRecipes = await r.json();
+    document.getElementById('setupPanel').style.display='none';
+    document.getElementById('main').style.display='block';
+    document.getElementById('connStatus').textContent=`Conectado · ${allRecipes.length} receitas`;
+    document.getElementById('statTotal').textContent=allRecipes.length;
+    const slots = new Set(allRecipes.flatMap(r=>r.meal_slots||[]));
+    document.getElementById('statSlots').textContent=[...slots].map(s=>SLOTS[s]||s).join(', ')||'—';
+    renderGrid();
+  } catch(e) {
+    document.getElementById('connStatus').textContent='Erro de conexão';
+    alert('Erro: '+e.message);
+  }
+}
+
+function renderGrid() {
+  const q = document.getElementById('searchBox').value.toLowerCase();
+  const filtered = allRecipes.filter(r=>!q || r.title?.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q));
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('emptyState');
+  if (!filtered.length) { grid.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  grid.innerHTML = filtered.map(r=>`
+    <div class="recipe-card">
+      ${r.image_url?`<img src="${r.image_url}" alt="${r.title}" onerror="this.style.display='none'">`:`<div class="no-img">Sem imagem</div>`}
+      <div class="body">
+        <div class="title">${r.title||'Sem título'}</div>
+        <div class="meta">${r.prep_minutes||'?'} min · ${r.difficulty||''}</div>
+        <div class="meta">${(r.nutrition?.carbs_g??'?')}g carbo · ${(r.nutrition?.calories??'?')} kcal</div>
+        <div class="tags">
+          ${(r.meal_slots||[]).map(s=>`<span class="tag">${SLOTS[s]||s}</span>`).join('')}
+          ${(r.categories||[]).slice(0,2).map(c=>`<span class="tag green">${CATS[c]||c}</span>`).join('')}
+        </div>
+        <div class="actions">
+          <button class="btn btn-outline btn-sm" onclick='editRecipe(${JSON.stringify(r.id)})'>Editar</button>
+          <button class="btn btn-sm" style="background:#c0392b" onclick='deleteRecipe(${JSON.stringify(r.id)},${JSON.stringify(r.title)})'>Remover</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openNew() {
+  editingId=null;
+  document.getElementById('modalTitle').textContent='Nova Receita';
+  document.getElementById('btnSave').textContent='Salvar receita';
+  ['fId','fTitle','fDesc','fImage','fIngr','fSteps','fNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fPrep').value=30;
+  document.getElementById('fDiff').value='facil';
+  document.getElementById('nServ').value=1;
+  ['nCal','nCarb','nProt','nFat','nFib'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('nGi').value='médio';
+  selectedSlots=new Set(); selectedCats=new Set(); selectedAllers=new Set();
+  buildChips('slotsChips',SLOTS,selectedSlots);
+  buildChips('catsChips',CATS,selectedCats);
+  buildChips('allerChips',ALLER,selectedAllers);
+  document.getElementById('saveStatus').className='status';
+  document.getElementById('modalOverlay').className='modal-overlay open';
+}
+
+function editRecipe(id) {
+  const r = allRecipes.find(x=>x.id===id);
+  if (!r) return;
+  editingId=id;
+  document.getElementById('modalTitle').textContent='Editar Receita';
+  document.getElementById('btnSave').textContent='Salvar alterações';
+  document.getElementById('fId').value=r.id||'';
+  document.getElementById('fId').disabled=true;
+  document.getElementById('fTitle').value=r.title||'';
+  document.getElementById('fDesc').value=r.description||'';
+  document.getElementById('fImage').value=r.image_url||'';
+  document.getElementById('fPrep').value=r.prep_minutes||30;
+  document.getElementById('fDiff').value=r.difficulty||'facil';
+  document.getElementById('fIngr').value=(r.ingredients||[]).join('\n');
+  document.getElementById('fSteps').value=(r.steps||[]).join('\n');
+  document.getElementById('fNotes').value=r.diabetes_notes||'';
+  document.getElementById('nServ').value=r.nutrition?.servings??1;
+  document.getElementById('nCal').value=r.nutrition?.calories??0;
+  document.getElementById('nCarb').value=r.nutrition?.carbs_g??0;
+  document.getElementById('nProt').value=r.nutrition?.protein_g??0;
+  document.getElementById('nFat').value=r.nutrition?.fat_g??0;
+  document.getElementById('nFib').value=r.nutrition?.fiber_g??'';
+  document.getElementById('nGi').value=r.nutrition?.glycemic_index??'médio';
+  selectedSlots=new Set(r.meal_slots||[]);
+  selectedCats=new Set(r.categories||[]);
+  selectedAllers=new Set(r.allergens||[]);
+  buildChips('slotsChips',SLOTS,selectedSlots);
+  buildChips('catsChips',CATS,selectedCats);
+  buildChips('allerChips',ALLER,selectedAllers);
+  document.getElementById('saveStatus').className='status';
+  document.getElementById('modalOverlay').className='modal-overlay open';
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').className='modal-overlay';
+  document.getElementById('fId').disabled=false;
+}
+
+async function saveRecipe() {
+  const id=document.getElementById('fId').value.trim();
+  const title=document.getElementById('fTitle').value.trim();
+  if (!id||!title) { showStatus('err','Preencha ID e Título.'); return; }
+
+  const payload={
+    id,title,
+    description:document.getElementById('fDesc').value.trim()||null,
+    image_url:document.getElementById('fImage').value.trim()||null,
+    prep_minutes:parseInt(document.getElementById('fPrep').value)||30,
+    difficulty:document.getElementById('fDiff').value,
+    meal_slots:[...selectedSlots],
+    categories:[...selectedCats],
+    allergens:[...selectedAllers],
+    ingredients:document.getElementById('fIngr').value.split('\n').map(l=>l.trim()).filter(Boolean),
+    steps:document.getElementById('fSteps').value.split('\n').map(l=>l.trim()).filter(Boolean),
+    nutrition:{
+      servings:parseInt(document.getElementById('nServ').value)||1,
+      calories:parseInt(document.getElementById('nCal').value)||0,
+      carbs_g:parseInt(document.getElementById('nCarb').value)||0,
+      protein_g:parseInt(document.getElementById('nProt').value)||0,
+      fat_g:parseInt(document.getElementById('nFat').value)||0,
+      ...(document.getElementById('nFib').value?{fiber_g:parseInt(document.getElementById('nFib').value)}:{}),
+      glycemic_index:document.getElementById('nGi').value,
+    },
+    diabetes_notes:document.getElementById('fNotes').value.trim()||null,
+  };
+
+  document.getElementById('btnSave').disabled=true;
+  try {
+    const method=editingId?'PATCH':'POST';
+    const url=editingId?`${supaUrl}/rest/v1/recipes?id=eq.${editingId}`:`${supaUrl}/rest/v1/recipes`;
+    const r=await fetch(url,{
+      method,
+      headers:{apikey:supaKey,Authorization:`Bearer ${supaKey}`,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify(payload)
+    });
+    if (!r.ok) throw new Error(await r.text());
+    showStatus('ok', editingId?'Receita atualizada!':'Receita criada!');
+    await loadRecipes();
+    setTimeout(closeModal,1200);
+  } catch(e) {
+    showStatus('err','Erro: '+e.message);
+  }
+  document.getElementById('btnSave').disabled=false;
+}
+
+async function deleteRecipe(id, title) {
+  if (!confirm(`Remover a receita "${title}"? Esta ação não pode ser desfeita.`)) return;
+  try {
+    const r=await fetch(`${supaUrl}/rest/v1/recipes?id=eq.${id}`,{
+      method:'DELETE',
+      headers:{apikey:supaKey,Authorization:`Bearer ${supaKey}`,'Content-Type':'application/json'}
+    });
+    if (!r.ok) throw new Error(await r.text());
+    await loadRecipes();
+  } catch(e){ alert('Erro ao remover: '+e.message); }
+}
+
+function showStatus(type,msg) {
+  const el=document.getElementById('saveStatus');
+  el.className='status '+type;
+  el.textContent=msg;
+}
+
+document.getElementById('modalOverlay').addEventListener('click',function(e){
+  if(e.target===this) closeModal();
+});
+</script>
+</body>
+</html>

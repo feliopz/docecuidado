@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "supabase-doce-cuidado": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--read-only",
+        "--project-ref=SEU_PROJECT_REF"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_seu_token_aqui"
+      }
+    }
+  }
+}

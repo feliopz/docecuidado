@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Doce Cuidado — Gestão de Receitas</title>
+<style>
+  :root { --red:#E74C3C; --green:#27AE60; --bg:#FFF5EE; --card:#fff; --text:#2C3E50; --muted:#7F8C8D; --border:#E8E8E8; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); }
+  header { background:var(--card); padding:14px 20px; box-shadow:0 2px 12px rgba(0,0,0,.06); position:sticky; top:0; z-index:10; }
+  h1 { font-size:18px; margin:0; }
+  .wrap { max-width:1100px; margin:0 auto; padding:20px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  input, select, textarea, button { font:inherit; padding:9px 11px; border:1.5px solid var(--border); border-radius:8px; background:#fff; color:var(--text); }
+  textarea { width:100%; min-height:70px; }
+  button { background:var(--red); color:#fff; border:none; cursor:pointer; font-weight:600; }
+  button:disabled { opacity:.55; cursor:not-allowed; }
+  button.ghost { background:#fff; color:var(--text); border:1.5px solid var(--border); }
+  button.green { background:var(--green); }
+  .muted { color:var(--muted); font-size:13px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:14px; margin-top:16px; }
+  .card { background:var(--card); border-radius:12px; overflow:hidden; box-shadow:0 2px 10px rgba(0,0,0,.05); cursor:pointer; position:relative; }
+  .card img, .card .ph { width:100%; height:130px; object-fit:cover; background:#f1f1f1; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:12px; }
+  .card .body { padding:10px 12px; }
+  .card h3 { font-size:14px; margin:0 0 6px; }
+  .badges { display:flex; gap:4px; flex-wrap:wrap; margin-top:6px; }
+  .badge { font-size:10px; padding:2px 7px; border-radius:10px; background:#EEF; color:#446; }
+  .badge.cat { background:#E8F8EF; color:#1E8449; }
+  .badge.alg { background:#FDEDEC; color:var(--red); }
+  .badge.slot { background:#FEF5E7; color:#B9770E; }
+  .badge.warn { background:#FDEDEC; color:var(--red); position:absolute; top:8px; right:8px; }
+  .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:flex-start; justify-content:center; padding:20px; overflow:auto; z-index:20; }
+  .modal { background:#fff; border-radius:14px; max-width:680px; width:100%; padding:22px; }
+  .modal h2 { margin-top:0; }
+  label { font-size:12px; font-weight:700; color:var(--muted); display:block; margin:12px 0 5px; text-transform:uppercase; letter-spacing:.4px; }
+  .field { margin-bottom:6px; }
+  .chk { display:inline-flex; align-items:center; gap:5px; font-size:13px; margin:0 10px 6px 0; font-weight:400; text-transform:none; letter-spacing:0; color:var(--text); }
+  .nutri { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .nutri input { width:100%; }
+  .prompt-box { background:#F7F2FB; border:1px solid #E2D4EF; border-radius:8px; padding:0; overflow:hidden; }
+  .prompt-box textarea { border:none; background:transparent; min-height:88px; resize:vertical; font-size:13px; line-height:1.55; padding:10px; }
+  .prompt-actions { display:flex; gap:8px; align-items:center; margin-top:6px; flex-wrap:wrap; }
+  .img-section { border:1.5px solid var(--border); border-radius:12px; overflow:hidden; background:#FAFAFA; }
+  .img-preview { width:100%; max-height:240px; object-fit:cover; display:block; background:#eee; }
+  .img-preview.ph { height:140px; display:flex; align-items:center; justify-content:center; color:#aaa; font-size:13px; }
+  .drop-zone { padding:22px 16px; text-align:center; cursor:pointer; border-top:1.5px dashed var(--border); background:#fff; transition:background .15s,border-color .15s; }
+  .drop-zone:hover, .drop-zone.dragover { background:#FFF8F6; border-color:var(--red); }
+  .drop-zone strong { display:block; margin-bottom:4px; font-size:14px; }
+  .drop-zone span { font-size:12px; color:var(--muted); }
+  .img-meta { padding:8px 12px; font-size:12px; color:var(--muted); word-break:break-all; border-top:1px solid var(--border); background:#fff; }
+  .img-meta.ok { color:var(--green); }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#2C3E50; color:#fff; padding:10px 18px; border-radius:20px; font-size:13px; display:none; z-index:30; max-width:90vw; text-align:center; }
+  .stat { font-size:13px; color:var(--muted); }
+  a { color:var(--red); }
+  .workflow-hint { background:#E8F8EF; border:1px solid #A9DFBF; border-radius:8px; padding:10px 12px; font-size:13px; line-height:1.5; margin-bottom:14px; }
+  .workflow-hint ol { margin:6px 0 0 18px; padding:0; }
+  .conn-card { padding:16px; cursor:default; }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="padding:0;">
+    <h1>🍓 Doce Cuidado — Gestão de Receitas <span class="muted" style="font-weight:400">(uso interno)</span></h1>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="connBox" class="card conn-card">
+    <div class="muted" style="margin-bottom:10px;">
+      Cole a <b>URL do projeto</b> e a <b>anon/publishable key</b> do Supabase. Ficam salvas só no seu navegador (localStorage).
+    </div>
+    <div class="row">
+      <input id="url" placeholder="https://xxxx.supabase.co" style="flex:2; min-width:240px;" />
+      <input id="key" placeholder="anon/publishable key" style="flex:2; min-width:240px;" />
+      <button id="connectBtn">Conectar</button>
+      <button class="ghost" id="forgetBtn">Esquecer</button>
+    </div>
+    <div id="connStatus" class="stat" style="margin-top:8px;"></div>
+  </div>
+
+  <div id="filters" class="row" style="margin-top:16px; display:none;">
+    <input id="search" placeholder="Buscar por título..." style="flex:2; min-width:200px;" />
+    <select id="fSlot"><option value="">Toda refeição</option></select>
+    <select id="fCat"><option value="">Toda categoria</option></select>
+    <select id="fAlg"><option value="">Todo alérgeno</option></select>
+    <select id="fImg">
+      <option value="">Todas imagens</option>
+      <option value="no">Sem imagem</option>
+      <option value="yes">Com imagem</option>
+    </select>
+    <span id="count" class="stat"></span>
+  </div>
+
+  <div id="grid" class="grid"></div>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal" id="modal"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SLOTS = { cafe_da_manha:'Café da manhã', almoco:'Almoço', jantar:'Jantar', lanche:'Lanche' };
+const CATS = { equilibrada:'Equilibrada', baixo_indice_glicemico:'Baixo IG', rica_fibra:'Rica em fibras', rica_proteina:'Rica em proteínas', baixo_carbo:'Baixo carbo', carbo_complexo:'Carbo complexo', pos_hipo:'Pós-hipo', pos_hiper:'Pós-hiper', lanche_leve:'Lanche leve' };
+const ALG = { leite:'Leite', ovo:'Ovo', gluten:'Glúten', amendoim:'Amendoim', castanhas:'Castanhas', soja:'Soja', peixe:'Peixe', frutos_do_mar:'Frutos do mar', gergelim:'Gergelim', mel:'Mel', corantes:'Corantes' };
+const BUCKET = 'recipe-images';
+const DEFAULT_URL = 'https://SEU_PROJECT_REF.supabase.co';
+
+let sb = null, recipes = [];
+let editState = null; // { id, pendingFile, previewObjectUrl, savedUrl }
+
+const $ = id => document.getElementById(id);
+const toast = msg => { const t=$('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2800); };
+
+for (const [k,v] of Object.entries(SLOTS)) $('fSlot').insertAdjacentHTML('beforeend',`<option value="${k}">${v}</option>`);
+for (const [k,v] of Object.entries(CATS)) $('fCat').insertAdjacentHTML('beforeend',`<option value="${k}">${v}</option>`);
+for (const [k,v] of Object.entries(ALG)) $('fAlg').insertAdjacentHTML('beforeend',`<option value="${k}">${v}</option>`);
+
+$('url').value = localStorage.getItem('dc_admin_url') || DEFAULT_URL;
+$('key').value = localStorage.getItem('dc_admin_key') || '';
+$('connectBtn').onclick = connect;
+$('forgetBtn').onclick = () => { localStorage.removeItem('dc_admin_url'); localStorage.removeItem('dc_admin_key'); $('url').value=DEFAULT_URL; $('key').value=''; $('connStatus').textContent='Credenciais apagadas.'; };
+if ($('url').value && $('key').value) connect();
+
+async function connect() {
+  const url = $('url').value.trim(), key = $('key').value.trim();
+  if (!url || !key) { $('connStatus').textContent='Preencha URL e key.'; return; }
+  localStorage.setItem('dc_admin_url', url); localStorage.setItem('dc_admin_key', key);
+  sb = createClient(url, key);
+  $('connStatus').textContent = 'Conectando...';
+  await load();
+}
+
+async function load() {
+  const { data, error } = await sb.from('recipes').select('*').order('title');
+  if (error) { $('connStatus').textContent = 'Erro: ' + error.message; return; }
+  recipes = data || [];
+  const withImg = recipes.filter(r => r.image_url).length;
+  $('connStatus').textContent = `Conectado. ${recipes.length} receitas (${withImg} com imagem).`;
+  $('filters').style.display = 'flex';
+  render();
+}
+
+['search','fSlot','fCat','fAlg','fImg'].forEach(id => $(id).addEventListener('input', render));
+
+function render() {
+  const q = $('search').value.toLowerCase(), fs=$('fSlot').value, fc=$('fCat').value, fa=$('fAlg').value, fi=$('fImg').value;
+  const list = recipes.filter(r =>
+    (!q || r.title.toLowerCase().includes(q)) &&
+    (!fs || (r.meal_slots||[]).includes(fs)) &&
+    (!fc || (r.categories||[]).includes(fc)) &&
+    (!fa || (r.allergens||[]).includes(fa)) &&
+    (!fi || (fi === 'yes' ? !!r.image_url : !r.image_url)));
+  $('count').textContent = `${list.length} / ${recipes.length}`;
+  $('grid').innerHTML = list.map(r => `
+    <div class="card" data-id="${r.id}">
+      ${!r.image_url ? '<span class="badge warn">sem foto</span>' : ''}
+      ${r.image_url ? `<img src="${esc(r.image_url)}" loading="lazy" />` : `<div class="ph">sem imagem</div>`}
+      <div class="body">
+        <h3>${esc(r.title)}</h3>
+        <div class="stat">${(r.nutrition?.carbs_g??'?')}g carbo · ${(r.nutrition?.calories??'?')} kcal</div>
+        <div class="badges">
+          ${(r.meal_slots||[]).map(s=>`<span class="badge slot">${SLOTS[s]||s}</span>`).join('')}
+          ${(r.categories||[]).map(c=>`<span class="badge cat">${CATS[c]||c}</span>`).join('')}
+          ${(r.allergens||[]).map(a=>`<span class="badge alg">${ALG[a]||a}</span>`).join('')}
+        </div>
+      </div>
+    </div>`).join('');
+  document.querySelectorAll('#grid .card').forEach(el => el.onclick = () => openEdit(el.dataset.id));
+}
+
+function extFromFile(file) {
+  const map = { 'image/jpeg':'jpg', 'image/jpg':'jpg', 'image/png':'png', 'image/webp':'webp', 'image/gif':'gif' };
+  return map[file.type] || (file.name?.split('.').pop()?.toLowerCase()) || 'jpg';
+}
+
+function publicUrl(path) {
+  return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+function revokePreview() {
+  if (editState?.previewObjectUrl) {
+    URL.revokeObjectURL(editState.previewObjectUrl);
+    editState.previewObjectUrl = null;
+  }
+}
+
+function setPendingImage(file) {
+  if (!editState || !file?.type?.startsWith('image/')) return;
+  revokePreview();
+  editState.pendingFile = file;
+  editState.previewObjectUrl = URL.createObjectURL(file);
+  updateImagePreview();
+  $('imgMeta').textContent = `Nova imagem pronta (${Math.round(file.size/1024)} KB) — clique em Salvar para enviar ao Storage.`;
+  $('imgMeta').className = 'img-meta';
+}
+
+function updateImagePreview() {
+  const el = $('imgPreview');
+  const src = editState.previewObjectUrl || editState.savedUrl;
+  if (src) {
+    el.outerHTML = `<img class="img-preview" id="imgPreview" src="${esc(src)}" alt="Preview" />`;
+  } else {
+    el.outerHTML = `<div class="img-preview ph" id="imgPreview">Nenhuma imagem ainda</div>`;
+  }
+}
+
+function openEdit(id) {
+  revokePreview();
+  const r = recipes.find(x => x.id === id); if (!r) return;
+  editState = { id, pendingFile: null, previewObjectUrl: null, savedUrl: r.image_url || null };
+  const nut = r.nutrition || {};
+  const prompt = r.image_prompt || '';
+  const chkGroup = (obj, sel, name) => Object.entries(obj).map(([k,v]) =>
+    `<label class="chk"><input type="checkbox" name="${name}" value="${k}" ${sel.includes(k)?'checked':''}/> ${v}</label>`).join('');
+
+  $('modal').innerHTML = `
+    <div class="workflow-hint">
+      <b>Fluxo rápido de imagem</b>
+      <ol>
+        <li>Copie o prompt abaixo e gere a foto numa IA</li>
+        <li>Cole a imagem aqui (<kbd>Ctrl+V</kbd>) ou arraste/clique para escolher arquivo</li>
+        <li>Clique em <b>Salvar</b> — envia pro Storage e atualiza a receita automaticamente</li>
+      </ol>
+    </div>
+
+    <h2>${esc(r.title)}</h2>
+
+    <label>Prompt de imagem (IA)</label>
+    <div class="prompt-box">
+      <textarea id="promptText" readonly placeholder="Esta receita ainda não tem prompt cadastrado.">${esc(prompt)}</textarea>
+    </div>
+    <div class="prompt-actions">
+      <button class="ghost" id="copyPrompt" ${prompt ? '' : 'disabled'}>📋 Copiar prompt</button>
+      ${prompt ? '' : '<span class="muted">Sem prompt no banco — edite direto no Supabase ou importe do JSON.</span>'}
+    </div>
+
+    <label>Imagem do prato</label>
+    <div class="img-section">
+      ${editState.savedUrl || editState.previewObjectUrl
+        ? `<img class="img-preview" id="imgPreview" src="${esc(editState.previewObjectUrl || editState.savedUrl)}" alt="Preview" />`
+        : `<div class="img-preview ph" id="imgPreview">Nenhuma imagem ainda</div>`}
+      <div class="drop-zone" id="dropZone">
+        <strong>Colar, arrastar ou clicar para escolher</strong>
+        <span>Suporta Ctrl+V da área de transferência · JPG, PNG, WebP</span>
+        <input type="file" id="imgFile" accept="image/*" hidden />
+      </div>
+      <div class="img-meta ${editState.savedUrl ? 'ok' : ''}" id="imgMeta">${editState.savedUrl ? 'URL pública: ' + esc(editState.savedUrl) : 'Nenhuma imagem salva ainda.'}</div>
+    </div>
+
+    <label>Título</label><input id="f_title" class="field" style="width:100%" value="${esc(r.title)}" />
+    <label>Descrição</label><textarea id="f_desc">${esc(r.description||'')}</textarea>
+
+    <label>Refeições</label><div>${chkGroup(SLOTS, r.meal_slots||[], 'slots')}</div>
+    <label>Categorias</label><div>${chkGroup(CATS, r.categories||[], 'cats')}</div>
+    <label>Alérgenos</label><div>${chkGroup(ALG, r.allergens||[], 'algs')}</div>
+
+    <div class="row">
+      <div style="flex:1"><label>Preparo (min)</label><input id="f_prep" type="number" value="${r.prep_minutes??0}" style="width:100%"/></div>
+      <div style="flex:1"><label>Dificuldade</label>
+        <select id="f_diff" style="width:100%">
+          ${['facil','media','dificil'].map(d=>`<option ${r.difficulty===d?'selected':''}>${d}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+
+    <label>Ingredientes (um por linha)</label><textarea id="f_ing">${esc((r.ingredients||[]).join('\n'))}</textarea>
+    <label>Modo de preparo (um passo por linha)</label><textarea id="f_steps">${esc((r.steps||[]).join('\n'))}</textarea>
+
+    <label>Nutrição (por porção)</label>
+    <div class="nutri">
+      ${nutField('servings','Porções',nut.servings)}
+      ${nutField('calories','kcal',nut.calories)}
+      ${nutField('carbs_g','Carbo g',nut.carbs_g)}
+      ${nutField('protein_g','Prot g',nut.protein_g)}
+      ${nutField('fat_g','Gord g',nut.fat_g)}
+      ${nutField('fiber_g','Fibra g',nut.fiber_g)}
+      ${nutField('sugar_g','Açúcar g',nut.sugar_g)}
+      <div><label style="margin-top:0">IG</label>
+        <select id="n_gi" style="width:100%">${['baixo','médio','alto'].map(g=>`<option ${nut.glycemic_index===g?'selected':''}>${g}</option>`).join('')}</select>
+      </div>
+    </div>
+
+    <label>Notas para diabetes</label><textarea id="f_notes">${esc(r.diabetes_notes||'')}</textarea>
+
+    <div class="row" style="margin-top:18px; justify-content:flex-end;">
+      <button class="ghost" id="closeBtn">Fechar</button>
+      <button id="saveBtn">Salvar alterações</button>
+    </div>`;
+
+  $('modalBg').style.display = 'flex';
+
+  $('closeBtn').onclick = closeModal;
+  $('copyPrompt').onclick = async () => {
+    const text = $('promptText').value.trim();
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    toast('Prompt copiado!');
+  };
+
+  const dropZone = $('dropZone');
+  const fileInput = $('imgFile');
+  dropZone.onclick = e => { if (e.target !== fileInput) fileInput.click(); };
+  fileInput.onchange = () => { if (fileInput.files[0]) setPendingImage(fileInput.files[0]); };
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('dragover');
+    const file = [...(e.dataTransfer?.files || [])].find(f => f.type.startsWith('image/'));
+    if (file) setPendingImage(file);
+  });
+
+  $('saveBtn').onclick = () => save(id);
+}
+
+function closeModal() {
+  revokePreview();
+  editState = null;
+  $('modalBg').style.display = 'none';
+}
+
+function nutField(key,label,val){ return `<div><label style="margin-top:0">${label}</label><input id="n_${key}" type="number" step="any" value="${val??0}" style="width:100%"/></div>`; }
+
+async function uploadImage(id, file) {
+  const ext = extFromFile(file);
+  const path = `${id}.${ext}`;
+  const { error } = await sb.storage.from(BUCKET).upload(path, file, { upsert: true, contentType: file.type || `image/${ext}` });
+  if (error) {
+    toast('Erro no upload: ' + error.message);
+    if (/bucket/i.test(error.message)) {
+      toast('Bucket "recipe-images" não encontrado. Crie um bucket público com esse nome no Supabase.');
+    }
+    return null;
+  }
+  return publicUrl(path);
+}
+
+async function save(id) {
+  const btn = $('saveBtn');
+  const checks = name => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map(c=>c.value);
+  const lines = el => $(el).value.split('\n').map(s=>s.trim()).filter(Boolean);
+  const num = el => { const v=parseFloat($(el).value); return isNaN(v)?0:v; };
+
+  btn.disabled = true;
+  const prevLabel = btn.textContent;
+
+  let imageUrl = editState?.savedUrl || null;
+  if (editState?.pendingFile) {
+    btn.textContent = 'Enviando imagem...';
+    imageUrl = await uploadImage(id, editState.pendingFile);
+    if (!imageUrl) { btn.disabled = false; btn.textContent = prevLabel; return; }
+    editState.savedUrl = imageUrl;
+    editState.pendingFile = null;
+    revokePreview();
+  }
+
+  btn.textContent = 'Salvando...';
+  const patch = {
+    title: $('f_title').value.trim(),
+    description: $('f_desc').value.trim(),
+    image_url: imageUrl,
+    meal_slots: checks('slots'),
+    categories: checks('cats'),
+    allergens: checks('algs'),
+    prep_minutes: num('f_prep'),
+    difficulty: $('f_diff').value,
+    ingredients: lines('f_ing'),
+    steps: lines('f_steps'),
+    nutrition: {
+      servings:num('n_servings'), calories:num('n_calories'), carbs_g:num('n_carbs_g'),
+      protein_g:num('n_protein_g'), fat_g:num('n_fat_g'), fiber_g:num('n_fiber_g'),
+      sugar_g:num('n_sugar_g'), glycemic_index:$('n_gi').value,
+    },
+    diabetes_notes: $('f_notes').value.trim(),
+  };
+
+  const { error } = await sb.from('recipes').update(patch).eq('id', id);
+  btn.disabled = false;
+  btn.textContent = prevLabel;
+  if (error) { toast('Erro: '+error.message); return; }
+
+  Object.assign(recipes.find(x=>x.id===id), patch);
+  closeModal();
+  render();
+  toast(imageUrl ? 'Salvo com imagem no Storage!' : 'Salvo!');
+}
+
+document.addEventListener('paste', e => {
+  if (!$('modalBg').style.display || $('modalBg').style.display === 'none' || !editState) return;
+  const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith('image/'));
+  if (!item) return;
+  e.preventDefault();
+  const file = item.getAsFile();
+  if (file) {
+    setPendingImage(file);
+    toast('Imagem colada! Clique em Salvar.');
+  }
+});
+
+$('modalBg').addEventListener('click', e => { if (e.target === $('modalBg')) closeModal(); });
+function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+</script>
+</body>
+</html>

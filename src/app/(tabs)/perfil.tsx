@@ -34,19 +34,16 @@ import {
   deleteEmergencyContactDB,
   redeemInviteCode,
   fetchChildById,
-  associateAsCaregiver,
   disassociateCaregiver,
   ensureResponsibleCaregiver,
 } from '../../lib/supabase-db';
+import { genId } from '../../lib/id';
 import { Child, Caregiver, EmergencyContact, INSULIN_LABELS, InsulinType, AccountType, DIAGNOSIS_LABELS } from '../../types';
 import {
   areNotificationsEnabled,
   setNotificationsEnabled,
   requestNotificationPermission,
-  scheduleTestNotification,
-  getNotificationDebugInfo,
   GLUCOSE_REMINDER_SLOTS,
-  NotificationDebugInfo,
 } from '../../lib/notifications';
 
 export default function Perfil() {
@@ -70,8 +67,6 @@ export default function Perfil() {
   const [assocError, setAssocError] = useState('');
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifLoading, setNotifLoading] = useState(false);
-  const [notifDebug, setNotifDebug] = useState<NotificationDebugInfo | null>(null);
-  const [notifTesting, setNotifTesting] = useState(false);
 
   const isResponsavel = accountType === 'responsavel';
   const isMedico = accountType === 'medico';
@@ -101,9 +96,6 @@ export default function Perfil() {
         setAccountType(at);
         setIsLoggedIn(loggedIn);
         setNotifEnabled(notifOn);
-        if (!isMedico) {
-          getNotificationDebugInfo().then(setNotifDebug).catch(() => setNotifDebug(null));
-        }
         if (c?.id) {
           // Backfill the responsible's caregiver row so caregivers/doctors can see them.
           if (at === 'responsavel') {
@@ -153,7 +145,7 @@ export default function Perfil() {
   const handleAddContact = async () => {
     if (!contactName.trim() || !contactPhone.trim() || !child) return;
     const newContact: EmergencyContact = {
-      id: Date.now().toString(),
+      id: genId(),
       child_id: child.id,
       name: contactName.trim(),
       phone: contactPhone.trim(),
@@ -198,7 +190,9 @@ export default function Perfil() {
     if (assocCode.trim().length !== 6) return;
     setAssocLoading(true);
     setAssocError('');
-    const childId = await redeemInviteCode(assocCode.trim().toUpperCase());
+    const role = accountType === 'medico' ? 'medico' : 'caregiver';
+    const accName = await getAccountName();
+    const childId = await redeemInviteCode(assocCode.trim().toUpperCase(), accName, role);
     if (!childId) {
       setAssocError('Código inválido ou já utilizado.');
       setAssocLoading(false);
@@ -210,8 +204,6 @@ export default function Perfil() {
       setAssocLoading(false);
       return;
     }
-    const [accId, accName] = await Promise.all([getAccountId(), getAccountName()]);
-    await associateAsCaregiver(childId, accId, accName, accountType === 'medico' ? 'medico' : 'caregiver');
     await saveChildById(childData);
     await addLinkedChild({ id: childId, name: childData.name, gender: childData.gender, role: accountType === 'medico' ? 'medico' : 'caregiver' });
     await setActiveChildId(childId);
@@ -556,8 +548,6 @@ export default function Perfil() {
                         return;
                       }
                       setNotifEnabled(true);
-                      const info = await getNotificationDebugInfo();
-                      setNotifDebug(info);
                     } else {
                       await setNotificationsEnabled(false);
                       setNotifEnabled(false);
@@ -580,40 +570,6 @@ export default function Perfil() {
               ))}
             </View>
           )}
-          {notifDebug && (
-            <Text style={styles.notifDebug}>
-              {notifDebug.isPhysicalDevice ? 'Celular físico' : 'Emulador — notificações limitadas'}
-              {' · '}
-              Permissão: {notifDebug.permission}
-              {' · '}
-              {notifDebug.scheduledCount} agendada(s)
-            </Text>
-          )}
-          <Button
-            title={notifTesting ? 'Agendando…' : 'Testar notificação em 10s'}
-            variant="outline"
-            disabled={notifTesting || !notifEnabled}
-            onPress={async () => {
-              setNotifTesting(true);
-              try {
-                await scheduleTestNotification(10);
-                Alert.alert(
-                  'Teste agendado',
-                  'Em cerca de 10 segundos você deve receber uma notificação. Deixe o app em segundo plano para ver no painel do celular.',
-                );
-                const info = await getNotificationDebugInfo();
-                setNotifDebug(info);
-              } catch (e) {
-                Alert.alert(
-                  'Não foi possível testar',
-                  e instanceof Error ? e.message : 'Use um celular físico com permissão ativa.',
-                );
-              } finally {
-                setNotifTesting(false);
-              }
-            }}
-            style={{ marginTop: 12 }}
-          />
         </Card>
       )}
 

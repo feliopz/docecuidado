@@ -8,10 +8,10 @@ import { Button } from '../../components/Button';
 import Icon from '../../components/Icon';
 import {
   getLinkedChildren, getActiveChildId, setActiveChildId, getChildById,
-  getAccountId, getAccountName, addLinkedChild, saveChildById,
+  getAccountName, addLinkedChild, saveChildById,
   LinkedChild,
 } from '../../lib/store';
-import { fetchGlucoseReadingsDB, redeemInviteCode, fetchChildById, associateAsCaregiver } from '../../lib/supabase-db';
+import { fetchGlucoseReadingsDB, redeemInviteCode, fetchChildById } from '../../lib/supabase-db';
 import { Child, getGlucoseStatus } from '../../types';
 
 interface PatientStat {
@@ -68,12 +68,11 @@ export default function Pacientes() {
     if (code.trim().length !== 6) return;
     setAdding(true);
     setErr('');
-    const childId = await redeemInviteCode(code.trim().toUpperCase());
+    const accName = await getAccountName();
+    const childId = await redeemInviteCode(code.trim().toUpperCase(), accName, 'medico');
     if (!childId) { setErr('Código inválido ou já utilizado.'); setAdding(false); return; }
     const childData = await fetchChildById(childId);
     if (!childData) { setErr('Não foi possível carregar os dados.'); setAdding(false); return; }
-    const [accId, accName] = await Promise.all([getAccountId(), getAccountName()]);
-    await associateAsCaregiver(childId, accId, accName, 'medico');
     await saveChildById(childData);
     await addLinkedChild({ id: childId, name: childData.name, gender: childData.gender, role: 'medico' });
     setCode('');

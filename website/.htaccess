@@ -1,0 +1,22 @@
+# Doce Cuidado — cole o conteúdo desta pasta em public_html na Hostinger
+
+DirectoryIndex index.html
+AddDefaultCharset UTF-8
+AddType application/vnd.android.package-archive .apk
+
+# Nunca comprimir APK (corrompe instalação)
+<IfModule mod_deflate.c>
+  SetEnvIfNoCase Request_URI \.apk$ no-gzip dont-vary
+</IfModule>
+
+# HTTPS (Hostinger — descomente se o redirect duplicar com painel SSL)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# /privacidade → /privacidade/
+<IfModule mod_rewrite.c>
+  RewriteRule ^privacidade$ /privacidade/ [R=301,L]
+</IfModule>

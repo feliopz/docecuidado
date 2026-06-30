@@ -28,7 +28,7 @@ export default function Auth() {
   const [pendingConfirmation, setPendingConfirmation] = useState(false);
   const [resendMsg, setResendMsg] = useState('');
 
-  const canSubmit = email.trim().length > 3 && password.length >= 6;
+  const canSubmit = email.trim().length > 3 && password.length >= 8;
 
   const submit = async () => {
     setLoading(true);
@@ -164,7 +164,7 @@ export default function Auth() {
         />
         <TextInput
           style={styles.input}
-          placeholder="Senha (mínimo 6 caracteres)"
+          placeholder="Senha (mínimo 8 caracteres)"
           value={password}
           onChangeText={setPassword}
           secureTextEntry

@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Doce Cuidado — Gestão de Lições & Quiz</title>
+<style>
+  :root { --red:#E74C3C; --green:#27AE60; --ia:#9B59B6; --bg:#FFF5EE; --card:#fff; --text:#2C3E50; --muted:#7F8C8D; --border:#E8E8E8; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); }
+  header { background:var(--card); padding:14px 20px; box-shadow:0 2px 12px rgba(0,0,0,.06); position:sticky; top:0; z-index:10; }
+  h1 { font-size:18px; margin:0; }
+  .wrap { max-width:1000px; margin:0 auto; padding:20px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  input, select, textarea, button { font:inherit; padding:9px 11px; border:1.5px solid var(--border); border-radius:8px; background:#fff; color:var(--text); }
+  textarea { width:100%; min-height:70px; resize:vertical; }
+  button { background:var(--red); color:#fff; border:none; cursor:pointer; font-weight:600; }
+  button:disabled { opacity:.55; cursor:not-allowed; }
+  button.ghost { background:#fff; color:var(--text); border:1.5px solid var(--border); }
+  button.green { background:var(--green); }
+  button.danger { background:#fff; color:var(--red); border:1.5px solid var(--red); }
+  .muted { color:var(--muted); font-size:13px; }
+  .warnbox { background:#FDEDEC; border:1px solid #F5B7B1; border-radius:8px; padding:10px 12px; font-size:13px; line-height:1.5; margin-top:10px; color:#922B21; }
+  .tabs { display:flex; gap:8px; margin:16px 0; }
+  .tab { padding:9px 16px; border-radius:20px; background:#fff; border:1.5px solid var(--border); cursor:pointer; font-weight:600; color:var(--muted); }
+  .tab.active { background:var(--text); color:#fff; border-color:var(--text); }
+  .list { display:flex; flex-direction:column; gap:10px; margin-top:8px; }
+  .item { background:var(--card); border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.05); cursor:pointer; padding:12px 14px; display:flex; gap:12px; align-items:center; }
+  .item .ord { font-size:12px; font-weight:700; color:var(--muted); min-width:22px; text-align:center; }
+  .item .ico { width:34px; height:34px; flex:none; color:var(--text); display:flex; align-items:center; justify-content:center; }
+  .item .ico svg { width:28px; height:28px; }
+  .item h3 { font-size:14px; margin:0 0 3px; }
+  .item p { font-size:12px; color:var(--muted); margin:0; }
+  .modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:flex-start; justify-content:center; padding:20px; overflow:auto; z-index:20; }
+  .modal { background:#fff; border-radius:14px; max-width:680px; width:100%; padding:22px; }
+  .modal h2 { margin-top:0; }
+  label { font-size:12px; font-weight:700; color:var(--muted); display:block; margin:12px 0 5px; text-transform:uppercase; letter-spacing:.4px; }
+  .iconrow { display:flex; gap:12px; align-items:stretch; }
+  .iconrow textarea { flex:1; min-height:120px; font-family:monospace; font-size:12px; }
+  .iconprev { width:96px; flex:none; border:1.5px dashed var(--border); border-radius:10px; display:flex; align-items:center; justify-content:center; background:#FAFAFA; color:#bbb; font-size:11px; text-align:center; padding:6px; }
+  .iconprev svg { width:56px; height:56px; color:var(--text); }
+  .opt { display:flex; gap:8px; align-items:center; margin-bottom:6px; }
+  .opt input[type=text] { flex:1; }
+  .opt .correct { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:4px; white-space:nowrap; }
+  .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#2C3E50; color:#fff; padding:10px 18px; border-radius:20px; font-size:13px; display:none; z-index:30; }
+  .stat { font-size:13px; color:var(--muted); }
+  .conn-card { padding:16px; background:var(--card); border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+</style>
+</head>
+<body>
+<header><div class="wrap" style="padding:0;"><h1>📚 Doce Cuidado — Gestão de Lições &amp; Quiz <span class="muted" style="font-weight:400">(uso interno)</span></h1></div></header>
+
+<div class="wrap">
+  <div class="conn-card">
+    <div class="muted" style="margin-bottom:10px;">
+      Cole a <b>URL do projeto</b> e a <b>service_role key</b> do Supabase
+      (Settings → API). Ficam salvas só no seu navegador (localStorage).
+    </div>
+    <div class="row">
+      <input id="url" placeholder="https://xxxx.supabase.co" style="flex:2; min-width:240px;" />
+      <input id="key" type="password" placeholder="service_role key" style="flex:2; min-width:240px;" />
+      <button id="connectBtn">Conectar</button>
+      <button class="ghost" id="forgetBtn">Esquecer</button>
+    </div>
+    <div id="connStatus" class="stat" style="margin-top:8px;"></div>
+    <div class="warnbox">
+      ⚠️ A <b>service_role key</b> é secreta e dá acesso total. Use só neste
+      computador, nunca a coloque no app nem a compartilhe. As tabelas
+      <code>lessons</code> e <code>quiz_questions</code> são públicas para leitura;
+      apenas esta chave permite editar.
+    </div>
+  </div>
+
+  <div id="tabs" class="tabs" style="display:none;">
+    <div class="tab active" data-tab="lessons">Lições</div>
+    <div class="tab" data-tab="quiz">Quiz</div>
+  </div>
+
+  <div id="toolbar" class="row" style="display:none; justify-content:space-between;">
+    <span id="count" class="stat"></span>
+    <button id="newBtn" class="green">+ Novo</button>
+  </div>
+
+  <div id="list" class="list"></div>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const DEFAULT_URL = 'https://your-project.supabase.co';
+let sb = null, tab = 'lessons', lessons = [], quiz = [];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const toast = msg => { const t=$('toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2800); };
+const uuid = () => (crypto.randomUUID ? crypto.randomUUID() : 'id-'+Date.now()+'-'+Math.random().toString(36).slice(2,8));
+
+$('url').value = localStorage.getItem('dc_admin_url') || DEFAULT_URL;
+$('key').value = localStorage.getItem('dc_admin_key') || '';
+$('connectBtn').onclick = connect;
+$('forgetBtn').onclick = () => { localStorage.removeItem('dc_admin_url'); localStorage.removeItem('dc_admin_key'); $('url').value=DEFAULT_URL; $('key').value=''; $('connStatus').textContent='Credenciais apagadas.'; };
+if ($('url').value && $('key').value) connect();
+
+document.querySelectorAll('.tab').forEach(el => el.onclick = () => {
+  tab = el.dataset.tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t === el));
+  render();
+});
+$('newBtn').onclick = () => tab === 'lessons' ? openLesson(null) : openQuiz(null);
+
+async function connect() {
+  const url = $('url').value.trim(), key = $('key').value.trim();
+  if (!url || !key) { $('connStatus').textContent='Preencha URL e key.'; return; }
+  localStorage.setItem('dc_admin_url', url); localStorage.setItem('dc_admin_key', key);
+  sb = createClient(url, key);
+  $('connStatus').textContent = 'Conectando...';
+  await load();
+}
+
+async function load() {
+  const [l, q] = await Promise.all([
+    sb.from('lessons').select('*').order('order_index'),
+    sb.from('quiz_questions').select('*').order('order_index'),
+  ]);
+  if (l.error) { $('connStatus').textContent = 'Erro: ' + l.error.message; return; }
+  if (q.error) { $('connStatus').textContent = 'Erro: ' + q.error.message; return; }
+  lessons = l.data || []; quiz = q.data || [];
+  $('connStatus').textContent = `Conectado. ${lessons.length} lições, ${quiz.length} perguntas.`;
+  $('tabs').style.display = 'flex';
+  $('toolbar').style.display = 'flex';
+  render();
+}
+
+function render() {
+  if (tab === 'lessons') {
+    $('count').textContent = `${lessons.length} lições`;
+    $('list').innerHTML = lessons.map(r => `
+      <div class="item" data-id="${esc(r.id)}">
+        <span class="ord">${r.order_index ?? 0}</span>
+        <span class="ico">${(r.icon_svg||'').trim().startsWith('<svg') ? r.icon_svg : '📖'}</span>
+        <div style="flex:1"><h3>${esc(r.title)}</h3><p>${esc(r.description)}</p></div>
+      </div>`).join('') || '<p class="muted">Nenhuma lição ainda.</p>';
+    document.querySelectorAll('#list .item').forEach(el => el.onclick = () => openLesson(el.dataset.id));
+  } else {
+    $('count').textContent = `${quiz.length} perguntas`;
+    $('list').innerHTML = quiz.map(r => `
+      <div class="item" data-id="${esc(r.id)}">
+        <span class="ord">${r.order_index ?? 0}</span>
+        <div style="flex:1"><h3>${esc(r.question)}</h3>
+        <p>${(r.options||[]).length} opções · correta: ${(r.options||[])[r.correct_index] ? esc((r.options||[])[r.correct_index]) : '?'}</p></div>
+      </div>`).join('') || '<p class="muted">Nenhuma pergunta ainda.</p>';
+    document.querySelectorAll('#list .item').forEach(el => el.onclick = () => openQuiz(el.dataset.id));
+  }
+}
+
+// ── Lesson editor ───────────────────────────────────────────────────────────
+function openLesson(id) {
+  const r = id ? lessons.find(x => x.id === id) : { id:uuid(), title:'', description:'', content:'', icon_svg:'', order_index:(lessons.length+1) };
+  if (!r) return;
+  const isNew = !id;
+  $('modal').innerHTML = `
+    <h2>${isNew ? 'Nova lição' : 'Editar lição'}</h2>
+    <div class="row">
+      <div style="flex:2"><label>ID (slug único)</label><input id="f_id" style="width:100%" value="${esc(r.id)}" ${isNew?'':'readonly'} /></div>
+      <div style="flex:1"><label>Ordem</label><input id="f_ord" type="number" style="width:100%" value="${r.order_index??0}" /></div>
+    </div>
+    <label>Título</label><input id="f_title" style="width:100%" value="${esc(r.title)}" />
+    <label>Descrição (resumo do card)</label><textarea id="f_desc">${esc(r.description)}</textarea>
+    <label>Conteúdo (texto completo — use quebras de linha)</label><textarea id="f_content" style="min-height:160px">${esc(r.content)}</textarea>
+    <label>Ícone (cole o código SVG — use stroke/fill "currentColor" para herdar a cor)</label>
+    <div class="iconrow">
+      <textarea id="f_icon" oninput="window.__prev()">${esc(r.icon_svg)}</textarea>
+      <div class="iconprev" id="iconPrev"></div>
+    </div>
+    <div class="row" style="margin-top:18px; justify-content:space-between;">
+      <button class="danger" id="delBtn" ${isNew?'style="visibility:hidden"':''}>Excluir</button>
+      <div class="row">
+        <button class="ghost" id="closeBtn">Fechar</button>
+        <button class="green" id="saveBtn">Salvar</button>
+      </div>
+    </div>`;
+  $('modalBg').style.display = 'flex';
+  window.__prev = () => { const v = $('f_icon').value.trim(); $('iconPrev').innerHTML = v.startsWith('<svg') ? v : 'pré-visualização do ícone'; };
+  window.__prev();
+  $('closeBtn').onclick = closeModal;
+  $('saveBtn').onclick = async () => {
+    const payload = {
+      id: $('f_id').value.trim(),
+      title: $('f_title').value.trim(),
+      description: $('f_desc').value.trim(),
+      content: $('f_content').value,
+      icon_svg: $('f_icon').value.trim(),
+      order_index: parseInt($('f_ord').value, 10) || 0,
+    };
+    if (!payload.id || !payload.title) { toast('ID e título são obrigatórios.'); return; }
+    const { error } = await sb.from('lessons').upsert(payload);
+    if (error) { toast('Erro: ' + error.message); return; }
+    closeModal(); await load(); toast('Lição salva!');
+  };
+  $('delBtn').onclick = async () => {
+    if (!confirm('Excluir esta lição definitivamente?')) return;
+    const { error } = await sb.from('lessons').delete().eq('id', r.id);
+    if (error) { toast('Erro: ' + error.message); return; }
+    closeModal(); await load(); toast('Lição excluída.');
+  };
+}
+
+// ── Quiz editor ──────────────────────────────────────────────────────────────
+function openQuiz(id) {
+  const r = id ? quiz.find(x => x.id === id)
+              : { id:uuid(), question:'', options:['','','',''], correct_index:0, explanation_correct:'', explanation_wrong:'', order_index:(quiz.length+1) };
+  if (!r) return;
+  const isNew = !id;
+  const opts = (r.options && r.options.length ? r.options : ['','']).slice();
+  const renderOpts = () => opts.map((o,i) => `
+    <div class="opt">
+      <label class="correct"><input type="radio" name="correct" value="${i}" ${r.correct_index===i?'checked':''}/> correta</label>
+      <input type="text" data-i="${i}" value="${esc(o)}" oninput="window.__optEdit(${i}, this.value)" />
+      <button class="danger" onclick="window.__optDel(${i})" ${opts.length<=2?'disabled':''}>✕</button>
+    </div>`).join('');
+  $('modal').innerHTML = `
+    <h2>${isNew ? 'Nova pergunta' : 'Editar pergunta'}</h2>
+    <div class="row">
+      <div style="flex:2"><label>ID único</label><input id="f_id" style="width:100%" value="${esc(r.id)}" ${isNew?'':'readonly'} /></div>
+      <div style="flex:1"><label>Ordem</label><input id="f_ord" type="number" style="width:100%" value="${r.order_index??0}" /></div>
+    </div>
+    <label>Pergunta</label><textarea id="f_q">${esc(r.question)}</textarea>
+    <label>Opções (marque a correta)</label>
+    <div id="opts">${renderOpts()}</div>
+    <button class="ghost" id="addOpt">+ Adicionar opção</button>
+    <label>Explicação quando ACERTA</label><textarea id="f_ec">${esc(r.explanation_correct)}</textarea>
+    <label>Explicação quando ERRA</label><textarea id="f_ew">${esc(r.explanation_wrong)}</textarea>
+    <div class="row" style="margin-top:18px; justify-content:space-between;">
+      <button class="danger" id="delBtn" ${isNew?'style="visibility:hidden"':''}>Excluir</button>
+      <div class="row">
+        <button class="ghost" id="closeBtn">Fechar</button>
+        <button class="green" id="saveBtn">Salvar</button>
+      </div>
+    </div>`;
+  $('modalBg').style.display = 'flex';
+  const redraw = () => { $('opts').innerHTML = renderOpts(); };
+  window.__optEdit = (i,v) => { opts[i] = v; };
+  window.__optDel = (i) => { opts.splice(i,1); if (r.correct_index>=opts.length) r.correct_index=0; redraw(); };
+  $('addOpt').onclick = () => { opts.push(''); redraw(); };
+  $('opts').addEventListener('change', e => { if (e.target.name === 'correct') r.correct_index = parseInt(e.target.value,10); });
+  $('closeBtn').onclick = closeModal;
+  $('saveBtn').onclick = async () => {
+    const correctEl = document.querySelector('input[name="correct"]:checked');
+    const cleanOpts = opts.map(o => o.trim()).filter(Boolean);
+    const payload = {
+      id: $('f_id').value.trim(),
+      question: $('f_q').value.trim(),
+      options: cleanOpts,
+      correct_index: correctEl ? parseInt(correctEl.value,10) : 0,
+      explanation_correct: $('f_ec').value.trim(),
+      explanation_wrong: $('f_ew').value.trim(),
+      order_index: parseInt($('f_ord').value,10) || 0,
+    };
+    if (!payload.id || !payload.question || cleanOpts.length < 2) { toast('ID, pergunta e ao menos 2 opções são obrigatórios.'); return; }
+    if (payload.correct_index >= cleanOpts.length) payload.correct_index = 0;
+    const { error } = await sb.from('quiz_questions').upsert(payload);
+    if (error) { toast('Erro: ' + error.message); return; }
+    closeModal(); await load(); toast('Pergunta salva!');
+  };
+  $('delBtn').onclick = async () => {
+    if (!confirm('Excluir esta pergunta definitivamente?')) return;
+    const { error } = await sb.from('quiz_questions').delete().eq('id', r.id);
+    if (error) { toast('Erro: ' + error.message); return; }
+    closeModal(); await load(); toast('Pergunta excluída.');
+  };
+}
+
+function closeModal() { $('modalBg').style.display = 'none'; }
+$('modalBg').addEventListener('click', e => { if (e.target === $('modalBg')) closeModal(); });
+</script>
+</body>
+</html>

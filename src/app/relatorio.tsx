@@ -17,6 +17,7 @@ import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import Icon from '../components/Icon';
 import { getChild } from '../lib/store';
+import { genId } from '../lib/id';
 import {
   fetchGlucoseReadingsDB,
   fetchInsulinLogsDB,
@@ -303,7 +304,7 @@ export default function Relatorio() {
       const { uri } = await Print.printToFileAsync({ html, base64: false });
 
       const record: ReportRecord = {
-        id: Date.now().toString(),
+        id: genId(),
         generated_at: new Date().toISOString(),
         period,
         child_name: childName,

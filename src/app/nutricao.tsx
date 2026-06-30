@@ -18,6 +18,7 @@ import { Button } from '../components/Button';
 import { IAInsight } from '../components/IAInsight';
 import Icon from '../components/Icon';
 import { addMealDB } from '../lib/supabase-db';
+import { genId } from '../lib/id';
 import { getChild, getRecorderName } from '../lib/store';
 import { getMealInsight, analyzeMealPhoto } from '../lib/llm';
 
@@ -29,6 +30,7 @@ export default function Nutricao() {
   const [description, setDescription] = useState('');
   const [carbsStr, setCarbsStr] = useState('');
   const [aiNotes, setAiNotes] = useState('');
+  const [aiNotice, setAiNotice] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [pendingBase64, setPendingBase64] = useState<string | null>(null);
   const [cameraRef, setCameraRef] = useState<CameraView | null>(null);
@@ -37,18 +39,28 @@ export default function Nutricao() {
   useEffect(() => {
     if (step !== 'analyzing' || !pendingBase64) return;
     let cancelled = false;
+    setAiNotice('');
     (async () => {
       try {
-        const analysis = await analyzeMealPhoto(pendingBase64);
+        const result = await analyzeMealPhoto(pendingBase64);
         if (cancelled) return;
-        if (analysis) {
-          setDescription(analysis.description);
-          if (analysis.estimated_carbs_g != null) setCarbsStr(String(analysis.estimated_carbs_g));
-          const insight = await getMealInsight(analysis.description, 0, analysis.estimated_carbs_g ?? 0, 0, 0);
-          if (!cancelled) setAiNotes(insight);
+        if (result.status === 'ok' && result.analysis) {
+          const { description: desc, estimated_carbs_g } = result.analysis;
+          setDescription(desc);
+          if (estimated_carbs_g != null) setCarbsStr(String(estimated_carbs_g));
+          const insight = await getMealInsight(desc, 0, estimated_carbs_g ?? 0, 0, 0);
+          if (!cancelled) { setAiNotes(insight); setStep('result'); }
+          return;
         }
-      } catch {}
-      if (!cancelled) setStep('result');
+        if (result.status === 'offline') {
+          setAiNotice('Você está sem internet. Conecte-se ao Wi-Fi ou dados móveis para analisar o prato com a IA — ou descreva a refeição manualmente.');
+        } else if (result.status === 'failed') {
+          setAiNotice('Não consegui analisar a foto com a IA agora. Tente de novo em instantes ou descreva a refeição manualmente.');
+        }
+        if (!cancelled) setStep('input');
+      } catch {
+        if (!cancelled) setStep('input');
+      }
     })();
     return () => { cancelled = true; };
   }, [step]);
@@ -86,7 +98,7 @@ export default function Nutricao() {
     const [child, recorder] = await Promise.all([getChild(), getRecorderName()]);
     const carbs = parseInt(carbsStr, 10) || undefined;
     await addMealDB({
-      id: Date.now().toString(),
+      id: genId(),
       child_id: child?.id ?? 'local',
       meal_time: new Date().toISOString(),
       description: description.trim() || 'Refeição registrada',
@@ -179,6 +191,12 @@ export default function Nutricao() {
       {/* Manual input form */}
       {step === 'input' && (
         <Card>
+          {!!aiNotice && (
+            <View style={styles.aiNotice}>
+              <Icon name="alert" size={18} color={colors.yellow} />
+              <Text style={styles.aiNoticeText}>{aiNotice}</Text>
+            </View>
+          )}
           <Text style={styles.label}>O que a criança comeu?</Text>
           <TextInput
             style={styles.textArea}
@@ -343,6 +361,16 @@ const styles = StyleSheet.create({
   chooseTitle: { fontSize: 14, fontWeight: '700', color: colors.text, textAlign: 'center' },
   chooseHint: { fontSize: 12, color: colors.text3, textAlign: 'center', lineHeight: 17 },
   label: { fontSize: 13, fontWeight: '600', color: colors.text2, marginBottom: 8 },
+  aiNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: '#FEF9E7',
+    borderRadius: radius.md,
+    padding: 12,
+    marginBottom: 16,
+  },
+  aiNoticeText: { flex: 1, fontSize: 13, color: colors.text2, lineHeight: 19 },
   textArea: {
     padding: 14, borderWidth: 2, borderColor: colors.border,
     borderRadius: radius.md, fontSize: fontSize.sm,

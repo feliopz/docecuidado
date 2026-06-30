@@ -8,6 +8,7 @@ import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
 import Icon from '../components/Icon';
 import { addInsulinLogDB } from '../lib/supabase-db';
+import { genId } from '../lib/id';
 import { getChild, getRecorderName } from '../lib/store';
 import { InsulinType, INSULIN_LABELS } from '../types';
 
@@ -27,7 +28,7 @@ export default function Insulina() {
   const save = async () => {
     const [child, recorder] = await Promise.all([getChild(), getRecorderName()]);
     await addInsulinLogDB({
-      id: Date.now().toString(),
+      id: genId(),
       child_id: child?.id ?? 'local',
       insulin_type: type!,
       dose_units: parseInt(dose, 10),

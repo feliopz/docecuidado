@@ -1,0 +1,15 @@
+AddType application/vnd.android.package-archive .apk
+
+# APK é binário — nunca comprimir (gzip corrompe o arquivo e a instalação falha)
+<IfModule mod_deflate.c>
+  SetEnvIfNoCase Request_URI \.apk$ no-gzip dont-vary
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.apk$">
+    Header set Content-Type "application/vnd.android.package-archive"
+    Header unset Content-Encoding
+    Header set Accept-Ranges bytes
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
+</IfModule>

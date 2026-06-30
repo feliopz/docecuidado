@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { AppState } from 'react-native';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -7,15 +8,22 @@ import {
   refreshRemindersIfEnabled,
   addNotificationResponseListener,
 } from '../lib/notifications';
+import { flushLogs, logEvent } from '../lib/log';
 
 export default function RootLayout() {
   useEffect(() => {
     ensureNotificationChannel();
     refreshRemindersIfEnabled();
+    logEvent('app.open', { area: 'app' });
+    flushLogs(); // drain any logs buffered while offline last session
     const sub = addNotificationResponseListener(screen => {
       router.push(screen as '/glicemia');
     });
-    return () => sub.remove();
+    // Retry the flush whenever the app returns to the foreground (likely back online).
+    const appSub = AppState.addEventListener('change', state => {
+      if (state === 'active') flushLogs();
+    });
+    return () => { sub.remove(); appSub.remove(); };
   }, []);
 
   return (

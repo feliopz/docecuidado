@@ -58,7 +58,8 @@ set_env() {
 echo "→ variáveis de ambiente no EAS (preview)…"
 set_env EXPO_PUBLIC_SUPABASE_URL "${EXPO_PUBLIC_SUPABASE_URL:-}"
 set_env EXPO_PUBLIC_SUPABASE_ANON_KEY "${EXPO_PUBLIC_SUPABASE_ANON_KEY:-}"
-set_env EXPO_PUBLIC_OPENROUTER_API_KEY "${EXPO_PUBLIC_OPENROUTER_API_KEY:-}"
+# NOTE: the OpenRouter key is NO LONGER a client var — it lives only as a secret
+# on the `llm` Edge Function. Do not add it here.
 
 echo "→ eas build android preview (pode levar 10–20 min)…"
 npx eas-cli build \

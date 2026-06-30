@@ -21,10 +21,9 @@ import {
   getAccountType,
   getAccountName,
   setAccountName,
-  getLinkedChildren,
   clearAll,
 } from '../lib/store';
-import { deleteAllChildData } from '../lib/supabase-db';
+import { logError } from '../lib/log';
 import { AccountType, ACCOUNT_TYPE_LABELS } from '../types';
 
 export default function Conta() {
@@ -90,13 +89,18 @@ export default function Conta() {
                   style: 'destructive',
                   onPress: async () => {
                     setBusy(true);
-                    if (isResp) {
-                      const children = await getLinkedChildren();
-                      for (const c of children.filter(c => c.role === 'owner')) {
-                        await deleteAllChildData(c.id);
+                    // Full server-side erasure (data + auth user) when signed in.
+                    // Pre-auth users have no cloud data — clearing local suffices.
+                    try {
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (session) {
+                        const { error } = await supabase.functions.invoke('delete-account');
+                        if (error) logError('conta.deleteAccount', error);
                       }
+                    } catch (e) {
+                      logError('conta.deleteAccount', e);
                     }
-                    try { await supabase.auth.signOut(); } catch {}
+                    try { await supabase.auth.signOut(); } catch (e) { logError('conta.signOut', e); }
                     await clearAll();
                     setBusy(false);
                     router.replace('/');

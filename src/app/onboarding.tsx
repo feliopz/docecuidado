@@ -9,12 +9,14 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
+import * as Linking from 'expo-linking';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, radius, fontSize, spacing } from '../constants/theme';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
 import Icon from '../components/Icon';
 import ScrollPicker from '../components/ScrollPicker';
+import { genId } from '../lib/id';
 import {
   setOnboarded,
   saveCaregiverRole,
@@ -24,14 +26,16 @@ import {
   setAccountType,
   setAccountName,
   getAccountId,
+  setAIConsent,
 } from '../lib/store';
 import {
   upsertChild,
   redeemInviteCode,
   fetchChildById,
-  associateAsCaregiver,
   ensureResponsibleCaregiver,
 } from '../lib/supabase-db';
+
+const PRIVACY_URL = 'https://docecuidado.com/privacidade';
 import {
   InsulinType,
   INSULIN_LABELS,
@@ -71,6 +75,7 @@ export default function Onboarding() {
   const [insulinTypes, setInsulinTypes] = useState<InsulinType[]>([]);
   const [targetMin, setTargetMin] = useState(70);
   const [targetMax, setTargetMax] = useState(180);
+  const [aiConsent, setAiConsent] = useState(false);
 
   // Caregiver flow state
   const [cgRole, setCgRole] = useState<CgRole>('cuidador');
@@ -89,7 +94,7 @@ export default function Onboarding() {
 
   const finishAsParent = async (enableNotifications = false) => {
     const child = {
-      id: Date.now().toString(),
+      id: genId(),
       name: childName.trim() || 'Criança',
       diagnosis,
       insulin_types: insulinTypes.length > 0 ? insulinTypes : ['rápida' as InsulinType],
@@ -100,6 +105,7 @@ export default function Onboarding() {
     const relLabel = CAREGIVER_RELATIONSHIPS[caregiverRole]?.label ?? 'Responsável';
     await setAccountType('responsavel');
     await setAccountName(relLabel);
+    await setAIConsent(aiConsent);
     await upsertChild(child);
     if (caregiverRole) await saveCaregiverRole(caregiverRole);
     const accId = await getAccountId();
@@ -119,7 +125,8 @@ export default function Onboarding() {
     setCgLoading(true);
     setCgError('');
 
-    const childId = await redeemInviteCode(cgCode.trim().toUpperCase());
+    const role = cgRole === 'medico' ? 'medico' : 'caregiver';
+    const childId = await redeemInviteCode(cgCode.trim().toUpperCase(), cgName.trim(), role);
     if (!childId) {
       setCgError('Código inválido ou já utilizado. Peça um novo código ao responsável.');
       setCgLoading(false);
@@ -133,10 +140,8 @@ export default function Onboarding() {
       return;
     }
 
-    const accId = await getAccountId();
     await setAccountType(cgRole);
     await setAccountName(cgName.trim());
-    await associateAsCaregiver(childId, accId, cgName.trim(), cgRole === 'medico' ? 'medico' : 'caregiver');
     await saveChildById(childData);
     await addLinkedChild({ id: childId, name: childData.name, gender: childData.gender, role: cgRole === 'medico' ? 'medico' : 'caregiver' });
     await setActiveChildId(childId);
@@ -403,6 +408,27 @@ export default function Onboarding() {
             ))}
           </View>
           <Text style={styles.hint}>Você pode desativar a qualquer momento no Perfil.</Text>
+
+          {/* LGPD — opt-in consent for third-party AI processing */}
+          <TouchableOpacity
+            style={styles.consentRow}
+            activeOpacity={0.7}
+            onPress={() => setAiConsent(v => !v)}
+          >
+            <View style={[styles.checkbox, aiConsent && styles.checkboxChecked]}>
+              {aiConsent && <Icon name="checkmark" size={14} color="#FFFFFF" />}
+            </View>
+            <Text style={styles.consentText}>
+              Autorizo o uso de inteligência artificial para gerar dicas e análises
+              personalizadas. Apenas o primeiro nome e os dados estritamente
+              necessários são enviados ao serviço de IA.{' '}
+              <Text style={styles.consentLink} onPress={() => Linking.openURL(PRIVACY_URL)}>
+                Ler a Política de Privacidade
+              </Text>
+              .
+            </Text>
+          </TouchableOpacity>
+
           <Dots current={8} total={PARENT_STEPS} />
           <Button title="Ativar lembretes" onPress={() => finishAsParent(true)} />
           <TouchableOpacity onPress={() => finishAsParent(false)} style={styles.skipLink}>
@@ -550,4 +576,16 @@ const styles = StyleSheet.create({
   },
   reminderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   reminderText: { fontSize: 13, color: colors.text2 },
+  consentRow: {
+    width: '100%', flexDirection: 'row', alignItems: 'flex-start', gap: 10,
+    backgroundColor: colors.card, borderRadius: radius.md, padding: 14,
+    borderWidth: 1, borderColor: colors.border,
+  },
+  checkbox: {
+    width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: colors.text3,
+    alignItems: 'center', justifyContent: 'center', marginTop: 1,
+  },
+  checkboxChecked: { backgroundColor: colors.green, borderColor: colors.green },
+  consentText: { flex: 1, fontSize: 12, lineHeight: 18, color: colors.text2 },
+  consentLink: { color: colors.ia, fontWeight: '700', textDecorationLine: 'underline' },
 });

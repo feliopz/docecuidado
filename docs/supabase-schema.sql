@@ -111,12 +111,101 @@ ALTER TABLE emergency_contacts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lesson_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invite_codes ENABLE ROW LEVEL SECURITY;
 
--- Permissive policies for anonymous access (pre-auth phase)
-CREATE POLICY "anon_all_children" ON children FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "anon_all_glucose" ON glucose_readings FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "anon_all_insulin" ON insulin_logs FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "anon_all_meals" ON meals FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "anon_all_caregivers" ON caregivers FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "anon_all_contacts" ON emergency_contacts FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "anon_all_lessons" ON lesson_progress FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "anon_all_invites" ON invite_codes FOR ALL USING (true) WITH CHECK (true);
+-- ============================================================================
+-- SECURE RLS — every policy is scoped to the authenticated user (auth.uid()).
+-- Anonymous clients get ZERO access; pre-auth data stays local (AsyncStorage)
+-- and syncs on sign-in. See migrations:
+--   secure_rls_auth_scoped_policies, secure_invite_and_delete_rpcs
+-- NOTE: This block is the canonical, secure replacement for the previous
+--       `USING (true)` policies. Do NOT reintroduce permissive policies.
+-- ============================================================================
+
+-- Helper functions (SECURITY DEFINER → bypass RLS to avoid policy recursion).
+CREATE OR REPLACE FUNCTION public.is_child_owner(p_child_id text)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM public.children c WHERE c.id = p_child_id AND c.user_id = auth.uid());
+$$;
+
+CREATE OR REPLACE FUNCTION public.can_access_child(p_child_id text)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  SELECT EXISTS (SELECT 1 FROM public.children c   WHERE c.id = p_child_id AND c.user_id = auth.uid())
+      OR EXISTS (SELECT 1 FROM public.caregivers cg WHERE cg.child_id = p_child_id AND cg.user_id = auth.uid()::text);
+$$;
+REVOKE EXECUTE ON FUNCTION public.is_child_owner(text), public.can_access_child(text) FROM public, anon;
+GRANT  EXECUTE ON FUNCTION public.is_child_owner(text), public.can_access_child(text) TO authenticated;
+
+-- children: owner writes; owner + linked caregivers read.
+CREATE POLICY children_select ON children FOR SELECT TO authenticated USING (public.can_access_child(id));
+CREATE POLICY children_insert ON children FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid());
+CREATE POLICY children_update ON children FOR UPDATE TO authenticated USING (public.is_child_owner(id)) WITH CHECK (public.is_child_owner(id));
+CREATE POLICY children_delete ON children FOR DELETE TO authenticated USING (public.is_child_owner(id));
+
+-- child-linked health data: any account with access to the child.
+CREATE POLICY glucose_rw  ON glucose_readings   FOR ALL TO authenticated USING (public.can_access_child(child_id)) WITH CHECK (public.can_access_child(child_id));
+CREATE POLICY insulin_rw  ON insulin_logs       FOR ALL TO authenticated USING (public.can_access_child(child_id)) WITH CHECK (public.can_access_child(child_id));
+CREATE POLICY meals_rw    ON meals              FOR ALL TO authenticated USING (public.can_access_child(child_id)) WITH CHECK (public.can_access_child(child_id));
+CREATE POLICY contacts_rw ON emergency_contacts FOR ALL TO authenticated USING (public.can_access_child(child_id)) WITH CHECK (public.can_access_child(child_id));
+CREATE POLICY lessons_rw  ON lesson_progress    FOR ALL TO authenticated USING (public.can_access_child(child_id)) WITH CHECK (public.can_access_child(child_id));
+
+-- caregivers: read within family; owner manages; self-insert/self-remove.
+CREATE POLICY caregivers_select ON caregivers FOR SELECT TO authenticated USING (public.can_access_child(child_id));
+CREATE POLICY caregivers_insert ON caregivers FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid()::text AND public.can_access_child(child_id));
+CREATE POLICY caregivers_update ON caregivers FOR UPDATE TO authenticated USING (public.is_child_owner(child_id)) WITH CHECK (public.is_child_owner(child_id));
+CREATE POLICY caregivers_delete ON caregivers FOR DELETE TO authenticated USING (user_id = auth.uid()::text OR public.is_child_owner(child_id));
+
+-- invite_codes: only the child owner can see/create/manage codes.
+-- (Redemption happens via the redeem_invite_code() RPC — codes are NOT enumerable.)
+CREATE POLICY invites_select ON invite_codes FOR SELECT TO authenticated USING (public.is_child_owner(child_id));
+CREATE POLICY invites_insert ON invite_codes FOR INSERT TO authenticated WITH CHECK (public.is_child_owner(child_id));
+CREATE POLICY invites_update ON invite_codes FOR UPDATE TO authenticated USING (public.is_child_owner(child_id)) WITH CHECK (public.is_child_owner(child_id));
+CREATE POLICY invites_delete ON invite_codes FOR DELETE TO authenticated USING (public.is_child_owner(child_id));
+
+-- See migration `secure_invite_and_delete_rpcs` for redeem_invite_code() and
+-- delete_child_and_data() (SECURITY DEFINER RPCs, authenticated-only).
+
+-- ── Learning content (public read, editable via service role) ───────────────
+-- See migration `create_lessons_and_quiz_tables`. Edited with tools/lessons-admin.html.
+create table if not exists public.lessons (
+  id text primary key, title text not null, description text not null default '',
+  content text not null default '', icon_svg text not null default '',
+  order_index int not null default 0, created_at timestamptz not null default now()
+);
+alter table public.lessons enable row level security;
+create policy lessons_read on public.lessons for select to anon, authenticated using (true);
+
+create table if not exists public.quiz_questions (
+  id text primary key, question text not null, options jsonb not null default '[]'::jsonb,
+  correct_index int not null default 0, explanation_correct text not null default '',
+  explanation_wrong text not null default '', order_index int not null default 0,
+  created_at timestamptz not null default now()
+);
+alter table public.quiz_questions enable row level security;
+create policy quiz_read on public.quiz_questions for select to anon, authenticated using (true);
+
+-- ── App logs (real-time monitoring) ─────────────────────────────────────────
+-- See migration `create_app_logs_table`. Minimal, NON-sensitive telemetry.
+-- Clients insert only their own rows; the `llm` edge function writes server rows
+-- (source='server') for AI provider health. Monitored via tools/logs-admin.html.
+create table if not exists public.app_logs (
+  id          text primary key default gen_random_uuid()::text,
+  user_id     uuid,
+  level       text not null default 'info' check (level in ('info','warn','error')),
+  event       text not null,
+  area        text,
+  detail      text,
+  provider    text,
+  ok          boolean,
+  source      text not null default 'client' check (source in ('client','server')),
+  platform    text,
+  app_version text,
+  client_ts   timestamptz,
+  created_at  timestamptz not null default now()
+);
+create index if not exists idx_app_logs_created on public.app_logs(created_at desc);
+create index if not exists idx_app_logs_level   on public.app_logs(level, created_at desc);
+create index if not exists idx_app_logs_event   on public.app_logs(event, created_at desc);
+create index if not exists idx_app_logs_user    on public.app_logs(user_id, created_at desc);
+alter table public.app_logs enable row level security;
+create policy app_logs_insert on public.app_logs
+  for insert to authenticated with check (user_id = auth.uid());
+revoke all on public.app_logs from anon;

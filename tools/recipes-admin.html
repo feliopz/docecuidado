@@ -68,11 +68,13 @@
 <div class="wrap">
   <div id="connBox" class="card conn-card">
     <div class="muted" style="margin-bottom:10px;">
-      Cole a <b>URL do projeto</b> e a <b>anon/publishable key</b> do Supabase. Ficam salvas só no seu navegador (localStorage).
+      Cole a <b>URL do projeto</b> e a <b>service_role key</b> do Supabase (Settings → API).
+      Necessária para salvar (a tabela é pública só para leitura). Fica salva só no seu navegador (localStorage).
+      <b>Nunca</b> coloque essa chave no app nem a compartilhe.
     </div>
     <div class="row">
       <input id="url" placeholder="https://xxxx.supabase.co" style="flex:2; min-width:240px;" />
-      <input id="key" placeholder="anon/publishable key" style="flex:2; min-width:240px;" />
+      <input id="key" type="password" placeholder="service_role key" style="flex:2; min-width:240px;" />
       <button id="connectBtn">Conectar</button>
       <button class="ghost" id="forgetBtn">Esquecer</button>
     </div>
@@ -107,7 +109,7 @@ const SLOTS = { cafe_da_manha:'Café da manhã', almoco:'Almoço', jantar:'Janta
 const CATS = { equilibrada:'Equilibrada', baixo_indice_glicemico:'Baixo IG', rica_fibra:'Rica em fibras', rica_proteina:'Rica em proteínas', baixo_carbo:'Baixo carbo', carbo_complexo:'Carbo complexo', pos_hipo:'Pós-hipo', pos_hiper:'Pós-hiper', lanche_leve:'Lanche leve' };
 const ALG = { leite:'Leite', ovo:'Ovo', gluten:'Glúten', amendoim:'Amendoim', castanhas:'Castanhas', soja:'Soja', peixe:'Peixe', frutos_do_mar:'Frutos do mar', gergelim:'Gergelim', mel:'Mel', corantes:'Corantes' };
 const BUCKET = 'recipe-images';
-const DEFAULT_URL = 'https://SEU_PROJECT_REF.supabase.co';
+const DEFAULT_URL = 'https://your-project.supabase.co';
 
 let sb = null, recipes = [];
 let editState = null; // { id, pendingFile, previewObjectUrl, savedUrl }

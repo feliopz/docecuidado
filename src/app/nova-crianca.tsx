@@ -17,6 +17,7 @@ import Icon from '../components/Icon';
 import ScrollPicker from '../components/ScrollPicker';
 import { setActiveChildId, getAccountId, getAccountName } from '../lib/store';
 import { upsertChild, ensureResponsibleCaregiver } from '../lib/supabase-db';
+import { genId } from '../lib/id';
 import {
   InsulinType,
   INSULIN_LABELS,
@@ -59,7 +60,7 @@ export default function NovaCrianca() {
     if (!name.trim()) return;
     setSaving(true);
     const child = {
-      id: Date.now().toString(),
+      id: genId(),
       name: name.trim(),
       diagnosis,
       allergies,

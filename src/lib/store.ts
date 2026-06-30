@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
+import { generateInviteCode } from './id';
+import { logError } from './log';
 import { Child, GlucoseReading, InsulinLog, Meal, Caregiver, EmergencyContact, AccountType } from '../types';
 
 const KEYS = {
@@ -18,7 +20,20 @@ const KEYS = {
   LINKED_CHILDREN: 'dc:linked_children',
   ACCOUNT_TYPE: 'dc:account_type',
   ACCOUNT_NAME: 'dc:account_name',
+  AI_CONSENT: 'dc:ai_consent',
 } as const;
+
+// --- AI processing consent (LGPD) ---
+// Whether the responsible has agreed that the child's data may be sent to the
+// third-party AI provider for insights. Defaults to FALSE (opt-in).
+
+export async function getAIConsent(): Promise<boolean> {
+  return (await AsyncStorage.getItem(KEYS.AI_CONSENT)) === 'true';
+}
+
+export async function setAIConsent(consented: boolean): Promise<void> {
+  await AsyncStorage.setItem(KEYS.AI_CONSENT, String(consented));
+}
 
 // --- Account type & name (set once per account) ---
 
@@ -248,11 +263,11 @@ export async function setAuthPrompted(timestamp: string): Promise<void> {
 
 async function generateNewInviteCode(childId: string): Promise<string> {
   const key = `dc:invite_${childId}`;
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  const code = generateInviteCode(6);
   await AsyncStorage.setItem(key, code);
   void (async () => {
-    try { await supabase.from('invite_codes').upsert({ code, child_id: childId, used: false }); } catch {}
+    try { await supabase.from('invite_codes').upsert({ code, child_id: childId, used: false }); }
+    catch (e) { logError('store.generateInviteCode', e); }
   })();
   return code;
 }
@@ -276,10 +291,11 @@ export async function getOrCreateInviteCode(childId: string): Promise<string> {
       if (!data) {
         // Code not in Supabase yet — sync it
         void (async () => {
-          try { await supabase.from('invite_codes').upsert({ code: existing, child_id: childId, used: false }); } catch {}
+          try { await supabase.from('invite_codes').upsert({ code: existing, child_id: childId, used: false }); }
+          catch (e) { logError('store.syncInviteCode', e); }
         })();
       }
-    } catch {}
+    } catch (e) { logError('store.getOrCreateInviteCode', e); }
     return existing;
   }
   return generateNewInviteCode(childId);

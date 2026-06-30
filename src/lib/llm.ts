@@ -1,27 +1,35 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from './supabase';
+import { logError, logEvent } from './log';
 import { MealSlot, RecipeCategory } from '../types';
 
-const API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY ?? '';
-const BASE_URL = 'https://openrouter.ai/api/v1/chat/completions';
+// All LLM traffic goes through the `llm` Supabase Edge Function (verify_jwt),
+// which holds the OpenRouter key server-side. The key is NEVER in the client
+// bundle. Model selection / fallback also live in the function.
 
-// Text-only models (no image support needed)
-const TEXT_MODELS = [
-  'google/gemma-4-31b-it:free',
-  'google/gemma-4-26b-a4b-it:free',
-  'nvidia/nemotron-3-nano-omni:free',
-  'poolside/laguna-xs.2:free',
-  'cohere/north-mini-code:free',
-  'nvidia/nemotron-3-super:free',
-  'nvidia/nemotron-3-ultra:free',
-  'poolside/laguna-m.1:free',
-  'liquidai/lfm2-5-1.2b-thinking:free',
-] as const;
+// ─── Privacy ─────────────────────────────────────────────────────────────────
+// LGPD: the child's data is only sent to the third-party AI provider after the
+// responsible explicitly consents (opt-in checkbox at onboarding). When consent
+// is absent, every LLM path is short-circuited and callers fall back to the
+// deterministic local messages.
+const AI_CONSENT_KEY = 'dc:ai_consent';
 
-// Vision-capable models — must support image_url content type
-const VISION_MODELS = [
-  'google/gemma-4-26b-a4b-it:free',
-  'google/gemma-4-31b-it:free',
-] as const;
+async function hasAIConsent(): Promise<boolean> {
+  try {
+    return (await AsyncStorage.getItem(AI_CONSENT_KEY)) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Reduce a full name to its first name only before it ever leaves the device.
+ * A bare first name is not, on its own, personally identifying, which keeps the
+ * outbound payload non-sensitive even though the provider is third-party.
+ */
+function firstNameOnly(name: string): string {
+  return (name || '').trim().split(/\s+/)[0] || 'a criança';
+}
 
 // ─── Throttle / Cache ────────────────────────────────────────────────────────
 
@@ -96,87 +104,81 @@ export function getFallbackMessage(): string {
 // ─── Core LLM call (text) ────────────────────────────────────────────────────
 
 async function callTextLLM(systemPrompt: string, userPrompt: string, maxTokens = 180): Promise<string | null> {
-  if (!API_KEY) return null;
-
-  for (const model of TEXT_MODELS) {
-    try {
-      const response = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${API_KEY}`,
-          'HTTP-Referer': 'https://doce-cuidado.app',
-          'X-Title': 'Doce Cuidado',
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt },
-          ],
-          max_tokens: maxTokens,
-          temperature: 0.7,
-        }),
-      });
-
-      if (!response.ok) continue;
-      const data = await response.json();
-      const text = data?.choices?.[0]?.message?.content?.trim();
-      if (text && text.length > 5) return text;
-    } catch {
-      continue;
-    }
+  if (!(await hasAIConsent())) return null;
+  try {
+    const { data, error } = await supabase.functions.invoke('llm', {
+      body: { mode: 'text', system: systemPrompt, user: userPrompt, maxTokens },
+    });
+    if (error) { logError('callTextLLM', error); return null; }
+    const text = (data as { content?: string } | null)?.content;
+    return text && text.length > 0 ? text : null;
+  } catch (e) {
+    logError('callTextLLM', e);
+    return null;
   }
-  return null;
 }
 
 // ─── Core LLM call (vision + JSON) ──────────────────────────────────────────
+
+/**
+ * Why a vision call did or didn't produce a result. Callers map this to UX:
+ *  - 'offline'    → no connection; ask the user to connect to use AI.
+ *  - 'no_consent' → AI is opt-out for this family; fall back silently.
+ *  - 'failed'     → every provider failed server-side; show "couldn't analyze".
+ *  - 'ok'         → content present (may still be unreadable when parsed).
+ */
+export type AIReason = 'ok' | 'offline' | 'no_consent' | 'failed';
+
+interface VisionCall {
+  content: string | null;
+  reason: AIReason;
+}
+
+/** True when an error from functions.invoke is a connectivity failure, not a server error. */
+function isNetworkError(error: unknown): boolean {
+  const name = (error as { name?: string })?.name ?? '';
+  const msg = String((error as { message?: string })?.message ?? '').toLowerCase();
+  return (
+    name === 'FunctionsFetchError' ||
+    msg.includes('failed to send a request') ||
+    msg.includes('network request failed') ||
+    msg.includes('failed to fetch') ||
+    msg.includes('networkerror') ||
+    msg.includes('network error')
+  );
+}
 
 async function callVisionLLM(
   prompt: string,
   imageBase64: string,
   maxTokens = 60,
-): Promise<string | null> {
-  if (!API_KEY) return null;
-
-  for (const model of VISION_MODELS) {
-    try {
-      const response = await fetch(BASE_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${API_KEY}`,
-          'HTTP-Referer': 'https://doce-cuidado.app',
-          'X-Title': 'Doce Cuidado',
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: prompt },
-                {
-                  type: 'image_url',
-                  image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
-                },
-              ],
-            },
-          ],
-          max_tokens: maxTokens,
-          temperature: 0.1,
-        }),
-      });
-
-      if (!response.ok) continue;
-      const data = await response.json();
-      const text = data?.choices?.[0]?.message?.content?.trim();
-      if (text && text.length > 1) return text;
-    } catch {
-      continue;
+): Promise<VisionCall> {
+  if (!(await hasAIConsent())) return { content: null, reason: 'no_consent' };
+  try {
+    const { data, error } = await supabase.functions.invoke('llm', {
+      body: { mode: 'vision', prompt, imageBase64, maxTokens, mimeType: 'image/jpeg' },
+    });
+    if (error) {
+      if (isNetworkError(error)) {
+        void logEvent('ai.vision', { level: 'warn', area: 'llm', detail: 'offline', ok: false });
+        return { content: null, reason: 'offline' };
+      }
+      logError('callVisionLLM', error);
+      return { content: null, reason: 'failed' };
     }
+    const text = (data as { content?: string } | null)?.content;
+    if (text && text.length > 0) return { content: text, reason: 'ok' };
+    // Server reached but every provider failed / returned empty.
+    void logEvent('ai.vision', { level: 'warn', area: 'llm', detail: 'all_failed', ok: false });
+    return { content: null, reason: 'failed' };
+  } catch (e) {
+    if (isNetworkError(e)) {
+      void logEvent('ai.vision', { level: 'warn', area: 'llm', detail: 'offline', ok: false });
+      return { content: null, reason: 'offline' };
+    }
+    logError('callVisionLLM', e);
+    return { content: null, reason: 'failed' };
   }
-  return null;
 }
 
 // ─── System prompt ───────────────────────────────────────────────────────────
@@ -211,7 +213,7 @@ export async function getGlucoseInsight(
 
   const text = await callTextLLM(
     SYSTEM_BASE,
-    `Glicemia de ${value} mg/dL para ${childName}. Meta: ${targetMin}-${targetMax} mg/dL. Momento: ${moment}. Feedback caloroso em 1-2 frases completas. Se fora da meta, oriente sem alarmar.`,
+    `Glicemia de ${value} mg/dL para ${firstNameOnly(childName)}. Meta: ${targetMin}-${targetMax} mg/dL. Momento: ${moment}. Feedback caloroso em 1-2 frases completas. Se fora da meta, oriente sem alarmar.`,
     120,
   );
 
@@ -239,7 +241,7 @@ export async function getPatternInsight(
 
   const text = await callTextLLM(
     SYSTEM_BASE,
-    `Padrões de ${childName}. Meta: ${targetMin}-${targetMax}. Leituras: ${summary}. Identifique 1 padrão descritivo em 2 frases completas. Nunca prescreva.`,
+    `Padrões de ${firstNameOnly(childName)}. Meta: ${targetMin}-${targetMax}. Leituras: ${summary}. Identifique 1 padrão descritivo em 2 frases completas. Nunca prescreva.`,
     160,
   );
 
@@ -281,7 +283,7 @@ export async function getCrisisGuidance(
 
   const text = await callTextLLM(
     `${SYSTEM_BASE}\nCONTEXTO DE EMERGÊNCIA: Seja DIRETA e CLARA. Use linguagem simples. Diga o que fazer AGORA. Se grave, diga para ligar 192.`,
-    `Família em crise com ${childName}. Cor: ${symptoms.color}. Sudorese: ${symptoms.sweating}. Respiração: ${symptoms.breathing}. Oriente em 2-3 frases completas sobre hipo/hiper/cetoacidose.`,
+    `Família em crise com ${firstNameOnly(childName)}. Cor: ${symptoms.color}. Sudorese: ${symptoms.sweating}. Respiração: ${symptoms.breathing}. Oriente em 2-3 frases completas sobre hipo/hiper/cetoacidose.`,
     200,
   );
 
@@ -302,7 +304,7 @@ export async function generateDoctorReport(
 
   const text = await callTextLLM(
     `${SYSTEM_BASE}\nGere um RELATÓRIO organizado para o médico. Sem emojis. Formato limpo. Nunca interprete clínicamente. Apenas descreva os dados.`,
-    `Relatório de ${childName} — ${periodLabel}.
+    `Relatório de ${firstNameOnly(childName)} — ${periodLabel}.
 Estatísticas: Média ${stats.avg} mg/dL, Pico ${stats.peak}, Mínima ${stats.low}, Na meta ${stats.inTargetPct}% (${stats.targetMin}-${stats.targetMax} mg/dL).
 Glicemias (${glucoseData.length}): ${glucoseData.slice(0, 10).map(r => `${r.value}mg/dL ${r.moment}`).join('; ')}.
 Insulinas (${insulinData.length}): ${insulinData.slice(0, 5).map(l => `${l.dose}u ${l.type}`).join('; ')}.
@@ -311,37 +313,41 @@ Escreva um parágrafo descritivo completo e objetivo.`,
     400,
   );
 
-  return text ?? `Relatório de ${childName} — ${periodLabel}.\nMédia: ${stats.avg} mg/dL | Pico: ${stats.peak} | Mínima: ${stats.low} | Na meta: ${stats.inTargetPct}%.\n${glucoseData.length} medições registradas.`;
+  return text ?? `Relatório de ${firstNameOnly(childName)} — ${periodLabel}.\nMédia: ${stats.avg} mg/dL | Pico: ${stats.peak} | Mínima: ${stats.low} | Na meta: ${stats.inTargetPct}%.\n${glucoseData.length} medições registradas.`;
 }
 
 // ─── Vision: Read Glucometer (JSON) ─────────────────────────────────────────
 
-export async function readGlucometer(imageBase64: string): Promise<number | null> {
+/** 'ok' carries a value; 'unreadable' means AI replied but no number could be read. */
+export type GlucometerStatus = 'ok' | 'unreadable' | 'offline' | 'no_consent' | 'failed';
+export interface GlucometerResult {
+  status: GlucometerStatus;
+  value?: number;
+}
+
+export async function readGlucometer(imageBase64: string): Promise<GlucometerResult> {
   const prompt = `Look at this glucometer display photo. Read the glucose number shown on the screen.
 Return ONLY valid JSON in this exact format: {"value": 106} where 106 is replaced by the actual number.
 If you cannot read the display clearly, return: {"value": null}
 Do not include any other text, only the JSON object.`;
 
-  const raw = await callVisionLLM(prompt, imageBase64, 30);
-  if (!raw) return null;
+  const { content: raw, reason } = await callVisionLLM(prompt, imageBase64, 30);
+  if (reason !== 'ok' || !raw) return { status: reason === 'ok' ? 'unreadable' : reason };
+
+  const toValue = (n: number): GlucometerResult =>
+    (!isNaN(n) && n >= 20 && n <= 700) ? { status: 'ok', value: n } : { status: 'unreadable' };
 
   try {
     const match = raw.match(/\{[^}]*"value"\s*:\s*(\d+|null)[^}]*\}/);
-    if (!match) return null;
+    if (!match) return { status: 'unreadable' };
     const parsed = JSON.parse(match[0]);
-    const val = parsed.value;
-    if (val === null || val === undefined) return null;
-    const num = Number(val);
-    if (isNaN(num) || num < 20 || num > 700) return null;
-    return num;
+    if (parsed.value === null || parsed.value === undefined) return { status: 'unreadable' };
+    return toValue(Number(parsed.value));
   } catch {
     // Fallback: extract any reasonable number from the response
     const numMatch = raw.match(/\b(\d{2,3})\b/);
-    if (numMatch) {
-      const num = parseInt(numMatch[1], 10);
-      if (num >= 20 && num <= 700) return num;
-    }
-    return null;
+    if (numMatch) return toValue(parseInt(numMatch[1], 10));
+    return { status: 'unreadable' };
   }
 }
 
@@ -353,7 +359,13 @@ export interface MealAnalysis {
   foods_identified: string[];
 }
 
-export async function analyzeMealPhoto(imageBase64: string): Promise<MealAnalysis | null> {
+export type MealPhotoStatus = 'ok' | 'unreadable' | 'offline' | 'no_consent' | 'failed';
+export interface MealPhotoResult {
+  status: MealPhotoStatus;
+  analysis?: MealAnalysis;
+}
+
+export async function analyzeMealPhoto(imageBase64: string): Promise<MealPhotoResult> {
   const prompt = `Look at this photo of a meal or food.
 Return ONLY valid JSON in this exact format:
 {"description": "arroz, feijão e frango grelhádo", "estimated_carbs_g": 45, "foods_identified": ["arroz", "feijão", "frango"]}
@@ -362,20 +374,23 @@ Return ONLY valid JSON in this exact format:
 - foods_identified: array of food items identified
 Return ONLY the JSON object, no other text.`;
 
-  const raw = await callVisionLLM(prompt, imageBase64, 120);
-  if (!raw) return null;
+  const { content: raw, reason } = await callVisionLLM(prompt, imageBase64, 120);
+  if (reason !== 'ok' || !raw) return { status: reason === 'ok' ? 'unreadable' : reason };
 
   try {
     const match = raw.match(/\{[\s\S]*\}/);
-    if (!match) return null;
+    if (!match) return { status: 'unreadable' };
     const parsed = JSON.parse(match[0]);
     return {
-      description: String(parsed.description ?? ''),
-      estimated_carbs_g: parsed.estimated_carbs_g != null ? Number(parsed.estimated_carbs_g) : null,
-      foods_identified: Array.isArray(parsed.foods_identified) ? parsed.foods_identified : [],
+      status: 'ok',
+      analysis: {
+        description: String(parsed.description ?? ''),
+        estimated_carbs_g: parsed.estimated_carbs_g != null ? Number(parsed.estimated_carbs_g) : null,
+        foods_identified: Array.isArray(parsed.foods_identified) ? parsed.foods_identified : [],
+      },
     };
   } catch {
-    return null;
+    return { status: 'unreadable' };
   }
 }
 
@@ -405,7 +420,7 @@ export async function recommendRecipeCategories(
 
   const text = await callTextLLM(
     `${SYSTEM_BASE}\nVocê classifica qual CATEGORIA de receita é mais indicada para cada refeição, com base na situação glicêmica recente. Responda APENAS em JSON, sem markdown.`,
-    `Criança: ${childName}. Última glicemia: ${context.lastValue ?? 'sem dados'} mg/dL (meta ${context.targetMin}-${context.targetMax}). Recentes: ${context.recent.slice(0, 6).join(', ') || 'sem dados'}.
+    `Criança: ${firstNameOnly(childName)}. Última glicemia: ${context.lastValue ?? 'sem dados'} mg/dL (meta ${context.targetMin}-${context.targetMax}). Recentes: ${context.recent.slice(0, 6).join(', ') || 'sem dados'}.
 Categorias permitidas: ${allowed.join(', ')}.
 Escolha UMA categoria por refeição. Responda só: {"cafe_da_manha":"...","almoco":"...","jantar":"..."}`,
     120,
@@ -429,33 +444,5 @@ Escolha UMA categoria por refeição. Responda só: {"cafe_da_manha":"...","almo
     return result;
   } catch {
     return fallback;
-  }
-}
-
-export async function generateQuiz(
-  childName: string,
-  insulinTypes: string[],
-  targetMin: number,
-  targetMax: number,
-): Promise<{
-  question: string;
-  options: string[];
-  correctIndex: number;
-  explanationCorrect: string;
-  explanationWrong: string;
-} | null> {
-  const text = await callTextLLM(
-    `${SYSTEM_BASE}\nGere uma pergunta de quiz educativo para cuidadores. Responda APENAS em JSON válido, sem markdown.`,
-    `Pergunta sobre cuidados com diabetes para cuidadores de ${childName}. Insulinas: ${insulinTypes.join(', ')}. Meta: ${targetMin}-${targetMax}. JSON: {"question":"...","options":["A...","B...","C...","D..."],"correctIndex":0,"explanationCorrect":"...","explanationWrong":"..."}`,
-    300,
-  );
-
-  if (!text) return null;
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
-    return JSON.parse(jsonMatch[0]);
-  } catch {
-    return null;
   }
 }

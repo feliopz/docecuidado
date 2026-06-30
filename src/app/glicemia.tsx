@@ -18,6 +18,7 @@ import { Chip } from '../components/Chip';
 import { IAInsight } from '../components/IAInsight';
 import Icon from '../components/Icon';
 import { addGlucoseReadingDB } from '../lib/supabase-db';
+import { genId } from '../lib/id';
 import { getChild, getRecorderName } from '../lib/store';
 import { MealMoment, MOMENT_LABELS, getGlucoseStatus } from '../types';
 import { getGlucoseInsight, readGlucometer } from '../lib/llm';
@@ -31,6 +32,7 @@ export default function Glicemia() {
   const [ocrValue, setOcrValue] = useState(0);
   const [moment, setMoment] = useState<MealMoment | null>(null);
   const [insight, setInsight] = useState('');
+  const [aiNotice, setAiNotice] = useState('');
   const [loading, setLoading] = useState(false);
   const [ocrLoading, setOcrLoading] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
@@ -39,15 +41,21 @@ export default function Glicemia() {
   const takePhoto = async () => {
     if (!cameraRef.current) return;
     setOcrLoading(true);
+    setAiNotice('');
     try {
       const photo = await cameraRef.current.takePictureAsync({ base64: true, quality: 0.7 });
       if (photo?.base64) {
-        const detected = await readGlucometer(photo.base64);
-        if (detected !== null) {
-          setOcrValue(detected);
-          setValue(String(detected));
+        const result = await readGlucometer(photo.base64);
+        if (result.status === 'ok' && result.value != null) {
+          setOcrValue(result.value);
+          setValue(String(result.value));
           setStep('ocr_confirm');
         } else {
+          if (result.status === 'offline') {
+            setAiNotice('Você está sem internet. Conecte-se ao Wi-Fi ou dados móveis para ler o glicosímetro com a IA — ou digite o valor manualmente.');
+          } else if (result.status === 'failed') {
+            setAiNotice('Não consegui analisar a foto com a IA agora. Tente de novo em instantes ou digite o valor manualmente.');
+          }
           setStep('manual');
         }
       } else {
@@ -66,7 +74,7 @@ export default function Glicemia() {
     setLoading(true);
     const [child, recorder] = await Promise.all([getChild(), getRecorderName()]);
     await addGlucoseReadingDB({
-      id: Date.now().toString(),
+      id: genId(),
       child_id: child?.id ?? 'local',
       reading_value: numValue,
       reading_time: new Date().toISOString(),
@@ -182,6 +190,12 @@ export default function Glicemia() {
 
       {step === 'manual' && (
         <Card>
+          {!!aiNotice && (
+            <View style={styles.aiNotice}>
+              <Icon name="alert" size={18} color={colors.yellow} />
+              <Text style={styles.aiNoticeText}>{aiNotice}</Text>
+            </View>
+          )}
           <Text style={styles.label}>Valor da glicemia (mg/dL)</Text>
           <TextInput
             style={styles.numInput}
@@ -267,6 +281,16 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 4 },
   title: { fontSize: 16, fontWeight: '700', color: colors.text },
+  aiNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: '#FEF9E7',
+    borderRadius: radius.md,
+    padding: 12,
+    marginBottom: 16,
+  },
+  aiNoticeText: { flex: 1, fontSize: 13, color: colors.text2, lineHeight: 19 },
   permBox: {
     alignItems: 'center',
     padding: 24,

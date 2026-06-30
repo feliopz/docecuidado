@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from './supabase';
+import { supabase, getAuthUserId, ensureSession } from './supabase';
+import { logError, logEvent } from './log';
 import {
   getChild, saveChild,
   getGlucoseReadings, addGlucoseReading,
@@ -18,16 +19,24 @@ import {
   EmergencyContact,
   LessonProgress,
   Recipe,
+  Lesson,
+  QuizQuestion,
 } from '../types';
 
 // ─── Children ────────────────────────────────────────────────────────────────
 
 export async function upsertChild(child: Child): Promise<void> {
   try {
-    const { error } = await supabase.from('children').upsert(child);
+    // Stamp ownership with auth.uid() so RLS authorizes this and all
+    // child-linked rows. When signed out, the write is rejected and we keep
+    // the data locally (local-first); it syncs on the next sign-in.
+    const uid = await getAuthUserId();
+    const row = uid ? { ...child, user_id: uid } : child;
+    const { error } = await supabase.from('children').upsert(row);
     if (error) throw error;
-  } catch {
-    // fallback: always persist locally
+    void logEvent('child.upsert', { area: 'crianca', ok: true });
+  } catch (e) {
+    logError('upsertChild', e); // local fallback below
   }
   await saveChild(child);
 }
@@ -41,7 +50,8 @@ export async function fetchChildById(childId: string): Promise<Child | null> {
       .single();
     if (error) throw error;
     return data as Child;
-  } catch {
+  } catch (e) {
+    logError('fetchChildById', e);
     return null;
   }
 }
@@ -58,8 +68,8 @@ export async function fetchChild(childId: string): Promise<Child | null> {
       await saveChild(data as Child);
       return data as Child;
     }
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('supabase-db', e);
   }
   return getChild();
 }
@@ -68,10 +78,12 @@ export async function fetchChild(childId: string): Promise<Child | null> {
 
 export async function addGlucoseReadingDB(reading: GlucoseReading): Promise<void> {
   try {
-    const { error } = await supabase.from('glucose_readings').insert(reading);
+    const uid = await getAuthUserId();
+    const { error } = await supabase.from('glucose_readings').insert(uid ? { ...reading, user_id: uid } : reading);
     if (error) throw error;
-  } catch {
-    // fallback
+    void logEvent('glucose.add', { area: 'glicemia', ok: true });
+  } catch (e) {
+    logError('addGlucoseReadingDB', e);
   }
   await addGlucoseReading(reading);
 }
@@ -85,8 +97,8 @@ export async function fetchGlucoseReadingsDB(childId: string): Promise<GlucoseRe
       .order('created_at', { ascending: false });
     if (error) throw error;
     if (data && data.length > 0) return data as GlucoseReading[];
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('supabase-db', e);
   }
   return getGlucoseReadings();
 }
@@ -95,10 +107,12 @@ export async function fetchGlucoseReadingsDB(childId: string): Promise<GlucoseRe
 
 export async function addInsulinLogDB(log: InsulinLog): Promise<void> {
   try {
-    const { error } = await supabase.from('insulin_logs').insert(log);
+    const uid = await getAuthUserId();
+    const { error } = await supabase.from('insulin_logs').insert(uid ? { ...log, user_id: uid } : log);
     if (error) throw error;
-  } catch {
-    // fallback
+    void logEvent('insulin.add', { area: 'insulina', ok: true });
+  } catch (e) {
+    logError('addInsulinLogDB', e);
   }
   await addInsulinLog(log);
 }
@@ -112,8 +126,8 @@ export async function fetchInsulinLogsDB(childId: string): Promise<InsulinLog[]>
       .order('created_at', { ascending: false });
     if (error) throw error;
     if (data && data.length > 0) return data as InsulinLog[];
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('supabase-db', e);
   }
   return getInsulinLogs();
 }
@@ -122,10 +136,12 @@ export async function fetchInsulinLogsDB(childId: string): Promise<InsulinLog[]>
 
 export async function addMealDB(meal: Meal): Promise<void> {
   try {
-    const { error } = await supabase.from('meals').insert(meal);
+    const uid = await getAuthUserId();
+    const { error } = await supabase.from('meals').insert(uid ? { ...meal, user_id: uid } : meal);
     if (error) throw error;
-  } catch {
-    // fallback
+    void logEvent('meal.add', { area: 'nutricao', ok: true });
+  } catch (e) {
+    logError('addMealDB', e);
   }
   await addMeal(meal);
 }
@@ -139,25 +155,13 @@ export async function fetchMealsDB(childId: string): Promise<Meal[]> {
       .order('created_at', { ascending: false });
     if (error) throw error;
     if (data && data.length > 0) return data as Meal[];
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('supabase-db', e);
   }
   return getMeals();
 }
 
 // ─── Caregivers ──────────────────────────────────────────────────────────────
-
-export async function addCaregiverDB(caregiver: Caregiver): Promise<void> {
-  try {
-    const { error } = await supabase.from('caregivers').insert(caregiver);
-    if (error) throw error;
-  } catch {
-    // fallback
-  }
-  const existing = await getCaregivers();
-  existing.push(caregiver);
-  await saveCaregivers(existing);
-}
 
 export async function fetchCaregiversDB(childId: string): Promise<Caregiver[]> {
   try {
@@ -167,8 +171,8 @@ export async function fetchCaregiversDB(childId: string): Promise<Caregiver[]> {
       .eq('child_id', childId);
     if (error) throw error;
     if (data && data.length > 0) return data as Caregiver[];
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('fetchCaregiversDB', e);
   }
   return getCaregivers();
 }
@@ -180,23 +184,25 @@ export async function deleteCaregiverDB(caregiverId: string): Promise<void> {
       .delete()
       .eq('id', caregiverId);
     if (error) throw error;
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('deleteCaregiverDB', e);
   }
   const existing = await getCaregivers();
-  const filtered = existing.filter((c) => c.id !== caregiverId);
-  await saveCaregivers(filtered);
+  await saveCaregivers(existing.filter((c) => c.id !== caregiverId));
 }
 
 /**
- * Ensure the responsible (owner) has a row in `caregivers` with role='responsavel',
- * so caregivers/doctors can see who the responsible is (badge). Idempotent per (child,user).
+ * Ensure the responsible (owner) has a role='responsavel' row in `caregivers`,
+ * recorded under their own auth.uid() so RLS authorizes it. No-op when signed
+ * out (the row is (re)created on sign-in via migrateLocalData). Idempotent.
  */
 export async function ensureResponsibleCaregiver(
   childId: string,
-  userId: string,
+  _userId: string,
   name: string,
 ): Promise<void> {
+  const uid = await getAuthUserId();
+  if (!uid) return;
   try {
     const { data } = await supabase
       .from('caregivers')
@@ -205,63 +211,52 @@ export async function ensureResponsibleCaregiver(
       .eq('role', 'responsavel')
       .maybeSingle();
     if (data) return;
-    await supabase.from('caregivers').insert({
-      id: `cg_${userId}_${childId}`,
+    const { error } = await supabase.from('caregivers').insert({
+      id: `cg_${uid}_${childId}`,
       child_id: childId,
-      user_id: userId,
+      user_id: uid,
       name: name || 'Responsável',
       role: 'responsavel',
       relationship: 'Responsável',
       created_at: new Date().toISOString(),
     });
-  } catch {
-    // best-effort
+    if (error) throw error;
+  } catch (e) {
+    logError('ensureResponsibleCaregiver', e);
   }
-}
-
-/**
- * Associate the current account (caregiver/doctor) with a child by inserting a
- * `caregivers` row. This is what makes the caregiver appear on the responsible's app.
- */
-export async function associateAsCaregiver(
-  childId: string,
-  userId: string,
-  name: string,
-  role: 'caregiver' | 'medico',
-): Promise<void> {
-  await addCaregiverDB({
-    id: `cg_${userId}_${childId}`,
-    child_id: childId,
-    user_id: userId,
-    name: name || (role === 'medico' ? 'Médico(a)' : 'Cuidador(a)'),
-    role,
-    relationship: role === 'medico' ? 'Médico(a)' : 'Cuidador(a)',
-    created_at: new Date().toISOString(),
-  });
 }
 
 /** Remove this account's caregiver link to a child (disassociation). */
-export async function disassociateCaregiver(childId: string, userId: string): Promise<void> {
+export async function disassociateCaregiver(childId: string, _userId: string): Promise<void> {
+  const uid = await getAuthUserId();
   try {
-    await supabase
-      .from('caregivers')
-      .delete()
-      .eq('child_id', childId)
-      .eq('user_id', userId);
-  } catch {
-    // best-effort
+    if (uid) {
+      const { error } = await supabase
+        .from('caregivers')
+        .delete()
+        .eq('child_id', childId)
+        .eq('user_id', uid);
+      if (error) throw error;
+    }
+  } catch (e) {
+    logError('disassociateCaregiver', e);
   }
   const existing = await getCaregivers();
-  await saveCaregivers(existing.filter(c => !(c.child_id === childId && c.user_id === userId)));
+  await saveCaregivers(existing.filter((c) => c.child_id !== childId));
 }
 
-/** Delete all rows for a child across every table (LGPD — responsible deleting account). */
+/**
+ * Owner-only, atomic deletion of a child and every related row (LGPD erasure).
+ * Runs server-side in a single transaction via SECURITY DEFINER RPC, which also
+ * verifies ownership — replacing the previous best-effort per-table deletes.
+ */
 export async function deleteAllChildData(childId: string): Promise<void> {
-  const tables = ['glucose_readings', 'insulin_logs', 'meals', 'caregivers', 'emergency_contacts', 'lesson_progress', 'invite_codes'] as const;
-  for (const t of tables) {
-    try { await supabase.from(t).delete().eq('child_id', childId); } catch {}
+  try {
+    const { error } = await supabase.rpc('delete_child_and_data', { p_child_id: childId });
+    if (error) throw error;
+  } catch (e) {
+    logError('deleteAllChildData', e);
   }
-  try { await supabase.from('children').delete().eq('id', childId); } catch {}
 }
 
 // ─── Emergency Contacts ─────────────────────────────────────────────────────
@@ -270,8 +265,8 @@ export async function addEmergencyContactDB(contact: EmergencyContact): Promise<
   try {
     const { error } = await supabase.from('emergency_contacts').insert(contact);
     if (error) throw error;
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('supabase-db', e);
   }
   const existing = await getEmergencyContacts();
   existing.push(contact);
@@ -286,8 +281,8 @@ export async function fetchEmergencyContactsDB(childId: string): Promise<Emergen
       .eq('child_id', childId);
     if (error) throw error;
     if (data && data.length > 0) return data as EmergencyContact[];
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('supabase-db', e);
   }
   return getEmergencyContacts();
 }
@@ -299,8 +294,8 @@ export async function updateEmergencyContactDB(contact: EmergencyContact): Promi
       .update(contact)
       .eq('id', contact.id);
     if (error) throw error;
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('supabase-db', e);
   }
   const existing = await getEmergencyContacts();
   const updated = existing.map((c) => (c.id === contact.id ? contact : c));
@@ -314,8 +309,8 @@ export async function deleteEmergencyContactDB(contactId: string): Promise<void>
       .delete()
       .eq('id', contactId);
     if (error) throw error;
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('supabase-db', e);
   }
   const existing = await getEmergencyContacts();
   const filtered = existing.filter((c) => c.id !== contactId);
@@ -326,26 +321,42 @@ export async function deleteEmergencyContactDB(contactId: string): Promise<void>
 
 export async function saveInviteCodeDB(childId: string, code: string): Promise<void> {
   try {
-    await supabase.from('invite_codes').upsert({ code, child_id: childId, used: false });
-  } catch {
-    // no-op — local code still works for sharing
+    const { error } = await supabase.from('invite_codes').upsert({ code, child_id: childId, used: false });
+    if (error) throw error;
+  } catch (e) {
+    logError('saveInviteCodeDB', e); // local code still works for sharing
   }
 }
 
-export async function redeemInviteCode(code: string): Promise<string | null> {
+/**
+ * Redeem an invite code and link the current account to the child.
+ *
+ * Runs entirely server-side via the SECURITY DEFINER `redeem_invite_code` RPC,
+ * which (1) requires an authenticated caller, (2) atomically claims the code
+ * (single-use, no TOCTOU race), and (3) records caregiver membership under the
+ * caller's auth.uid(). The codes table is no longer client-readable, so codes
+ * can't be enumerated. Caregivers/doctors get a transparent anonymous session.
+ *
+ * Returns the linked child_id, or null if the code is invalid/already used or
+ * no session could be established.
+ */
+export async function redeemInviteCode(
+  code: string,
+  name = '',
+  role: 'caregiver' | 'medico' = 'caregiver',
+): Promise<string | null> {
+  const uid = await ensureSession();
+  if (!uid) return null;
   try {
-    const { data, error } = await supabase
-      .from('invite_codes')
-      .select('child_id, used')
-      .eq('code', code.toUpperCase().trim())
-      .single();
-    if (error || !data || data.used) return null;
-    await supabase
-      .from('invite_codes')
-      .update({ used: true, used_at: new Date().toISOString() })
-      .eq('code', code.toUpperCase().trim());
-    return data.child_id as string;
-  } catch {
+    const { data, error } = await supabase.rpc('redeem_invite_code', {
+      p_code: code.toUpperCase().trim(),
+      p_name: name.trim() || null,
+      p_role: role,
+    });
+    if (error) throw error;
+    return (data as string | null) ?? null;
+  } catch (e) {
+    logError('redeemInviteCode', e);
     return null;
   }
 }
@@ -364,13 +375,68 @@ export async function fetchRecipesDB(): Promise<Recipe[]> {
       await AsyncStorage.setItem(RECIPES_CACHE_KEY, JSON.stringify(recipes));
       return recipes;
     }
-  } catch {
-    // offline / error — fall back to cache
+  } catch (e) {
+    logError('fetchRecipesDB', e); // offline / error — fall back to cache
   }
   try {
     const raw = await AsyncStorage.getItem(RECIPES_CACHE_KEY);
     if (raw) return JSON.parse(raw) as Recipe[];
-  } catch {}
+  } catch (e) {
+    logError('fetchRecipesDB.cache', e);
+  }
+  return [];
+}
+
+// ─── Lessons & Quiz (public, editable like recipes) ─────────────────────────
+
+const LESSONS_CACHE_KEY = 'dc:lessons_cache';
+const QUIZ_CACHE_KEY = 'dc:quiz_cache';
+
+/** Fetch the lesson catalog (ordered), caching locally for offline use. */
+export async function fetchLessonsDB(): Promise<Lesson[]> {
+  try {
+    const { data, error } = await supabase
+      .from('lessons')
+      .select('*')
+      .order('order_index', { ascending: true });
+    if (error) throw error;
+    if (data) {
+      await AsyncStorage.setItem(LESSONS_CACHE_KEY, JSON.stringify(data));
+      return data as Lesson[];
+    }
+  } catch (e) {
+    logError('fetchLessonsDB', e);
+  }
+  try {
+    const raw = await AsyncStorage.getItem(LESSONS_CACHE_KEY);
+    if (raw) return JSON.parse(raw) as Lesson[];
+  } catch (e) {
+    logError('fetchLessonsDB.cache', e);
+  }
+  return [];
+}
+
+/** Fetch the quiz questions (ordered), caching locally for offline use. */
+export async function fetchQuizDB(): Promise<QuizQuestion[]> {
+  try {
+    const { data, error } = await supabase
+      .from('quiz_questions')
+      .select('*')
+      .order('order_index', { ascending: true });
+    if (error) throw error;
+    if (data) {
+      await AsyncStorage.setItem(QUIZ_CACHE_KEY, JSON.stringify(data));
+      return data as QuizQuestion[];
+    }
+  } catch (e) {
+    logError('fetchQuizDB', e);
+  }
+  try {
+    const raw = await AsyncStorage.getItem(QUIZ_CACHE_KEY);
+    if (raw) return JSON.parse(raw) as QuizQuestion[];
+  } catch (e) {
+    logError('fetchQuizDB.cache', e);
+  }
   return [];
 }
 
@@ -387,8 +453,8 @@ export async function saveLessonProgressDB(
       completed_at: progress.completed_at,
     });
     if (error) throw error;
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('supabase-db', e);
   }
   const existing = await getLessonProgress();
   if (!existing.includes(progress.lesson_id)) {
@@ -409,8 +475,8 @@ export async function fetchLessonProgressDB(childId: string): Promise<string[]> 
       await saveLessonProgress(ids);
       return ids;
     }
-  } catch {
-    // fallback
+  } catch (e) {
+    logError('supabase-db', e);
   }
   return getLessonProgress();
 }

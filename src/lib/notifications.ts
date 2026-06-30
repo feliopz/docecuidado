@@ -16,14 +16,6 @@ export const GLUCOSE_REMINDER_SLOTS = [
   { id: 'noite', hour: 21, minute: 0, label: 'antes de dormir' },
 ] as const;
 
-export interface NotificationDebugInfo {
-  isPhysicalDevice: boolean;
-  permission: Notifications.PermissionStatus | 'undetermined';
-  enabledInApp: boolean;
-  scheduledCount: number;
-  nextTriggers: string[];
-}
-
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -135,69 +127,6 @@ export async function scheduleGlucoseReminders(): Promise<void> {
       },
     });
   }
-}
-
-/** Notificação de teste — dispara em N segundos (validar no celular real). */
-export async function scheduleTestNotification(delaySeconds = 10): Promise<string | null> {
-  if (!Device.isDevice) {
-    throw new Error('Notificações de teste só funcionam em celular físico (não emulador).');
-  }
-
-  const { status } = await Notifications.getPermissionsAsync();
-  if (status !== 'granted') {
-    throw new Error('Permissão de notificação não concedida.');
-  }
-
-  await ensureNotificationChannel();
-
-  const child = await getChild();
-  const { title, body } = buildMessage(child?.name ?? 'sua criança', 'teste');
-
-  const id = await Notifications.scheduleNotificationAsync({
-    content: {
-      title,
-      body: `${body} (notificação de teste)`,
-      sound: true,
-      data: { screen: '/glicemia', slot: 'test' },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-      seconds: Math.max(5, delaySeconds),
-      repeats: false,
-      channelId: Platform.OS === 'android' ? CHANNEL_ID : undefined,
-    },
-  });
-
-  return id;
-}
-
-/** Diagnóstico para a tela de Perfil. */
-export async function getNotificationDebugInfo(): Promise<NotificationDebugInfo> {
-  const [permission, enabledInApp, scheduled] = await Promise.all([
-    getNotificationPermissionStatus(),
-    areNotificationsEnabled(),
-    Notifications.getAllScheduledNotificationsAsync(),
-  ]);
-
-  const nextTriggers = scheduled
-    .slice(0, 6)
-    .map(n => {
-      const t = n.trigger;
-      if (t && typeof t === 'object' && 'hour' in t && 'minute' in t) {
-        const h = String((t as { hour?: number }).hour ?? '?').padStart(2, '0');
-        const m = String((t as { minute?: number }).minute ?? '?').padStart(2, '0');
-        return `${h}:${m}`;
-      }
-      return 'agendada';
-    });
-
-  return {
-    isPhysicalDevice: Device.isDevice,
-    permission,
-    enabledInApp,
-    scheduledCount: scheduled.length,
-    nextTriggers,
-  };
 }
 
 /** Reagenda quando o nome da criança ativa muda. */

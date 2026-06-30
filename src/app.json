@@ -26,16 +26,11 @@
       "versionCode": 1,
       "permissions": [
         "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
         "INTERNET",
         "ACCESS_NETWORK_STATE",
         "VIBRATE",
         "POST_NOTIFICATIONS",
-        "RECEIVE_BOOT_COMPLETED",
-        "SCHEDULE_EXACT_ALARM",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "RECEIVE_BOOT_COMPLETED"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#FFF5EE",

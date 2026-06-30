@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Doce Cuidado — calma e segurança para famílias que cuidam de crianças com diabetes</title>
+<meta name="description" content="O app-companheiro para famílias de crianças recém-diagnosticadas com diabetes. No dia normal, o app conversa. No pânico, o app comanda. Projeto do desafio CI-IA Saúde / UFMG, criado por estudantes do IFMG." />
+<meta name="theme-color" content="#FFF7F1" />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Doce Cuidado — calma nos primeiros dias do diabetes" />
+<meta property="og:description" content="Um caderno inteligente que orienta com calma as famílias nos primeiros dias após o diagnóstico de diabetes na infância." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* ============================================================
+   DOCE CUIDADO — Landing
+   Tokens · OKLCH throughout · light, warm, alive
+   ============================================================ */
+:root{
+  /* surface */
+  --bg:        oklch(0.985 0.012 75);
+  --bg-deep:   oklch(0.965 0.018 70);
+  --ink:       oklch(0.31 0.035 245);
+  --ink-soft:  oklch(0.47 0.028 245);
+  --ink-faint: oklch(0.60 0.020 245);
+  --line:      oklch(0.31 0.035 245 / 0.10);
+
+  /* brand */
+  --mint:      oklch(0.86 0.085 162);
+  --mint-deep: oklch(0.60 0.115 162);
+  --green:     oklch(0.64 0.155 152);
+  --peach:     oklch(0.89 0.065 66);
+  --peach-deep:oklch(0.80 0.105 58);
+  --sky:       oklch(0.86 0.062 236);
+  --sky-deep:  oklch(0.66 0.105 245);
+  --rose:      oklch(0.86 0.075 24);
+  --ia:        oklch(0.62 0.155 305);
+  --red:       oklch(0.62 0.205 25);
+
+  /* glass */
+  --glass:        oklch(1 0 0 / 0.55);
+  --glass-strong: oklch(1 0 0 / 0.72);
+  --glass-edge:   oklch(1 0 0 / 0.70);
+  --glass-shadow: 0 4px 14px oklch(0.31 0.06 245 / 0.06), 0 18px 50px oklch(0.31 0.08 245 / 0.10);
+
+  /* type */
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --body:    "Hanken Grotesk", system-ui, sans-serif;
+
+  /* fluid scale */
+  --step--1: clamp(0.84rem, 0.80rem + 0.2vw, 0.95rem);
+  --step-0:  clamp(1rem, 0.95rem + 0.25vw, 1.13rem);
+  --step-1:  clamp(1.2rem, 1.10rem + 0.5vw, 1.5rem);
+  --step-2:  clamp(1.5rem, 1.3rem + 1vw, 2.1rem);
+  --step-3:  clamp(2rem, 1.6rem + 2vw, 3rem);
+  --step-4:  clamp(2.6rem, 2rem + 3.4vw, 4.6rem);
+  --step-5:  clamp(3.1rem, 2.2rem + 4.6vw, 5.4rem);
+
+  --maxw: 1200px;
+  --radius: 22px;
+  --radius-sm: 14px;
+
+  /* z-scale */
+  --z-bg: 0; --z-base: 1; --z-nav: 50; --z-modal: 100; --z-toast: 120;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+section[id],main[id]{scroll-margin-top:5.5rem}
+
+body{
+  font-family:var(--body);
+  font-size:var(--step-0);
+  line-height:1.6;
+  color:var(--ink);
+  background:var(--bg);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+
+h1,h2,h3,h4{font-family:var(--display);font-weight:700;line-height:1.04;letter-spacing:-0.02em;text-wrap:balance;color:var(--ink)}
+p{text-wrap:pretty;max-width:65ch}
+a{color:inherit;text-decoration:none}
+img,svg{display:block;max-width:100%}
+::selection{background:var(--mint);color:var(--ink)}
+:focus-visible{outline:3px solid var(--sky-deep);outline-offset:3px;border-radius:6px}
+
+.wrap{width:min(100% - 2.4rem, var(--maxw));margin-inline:auto}
+.eyebrow{font-family:var(--body);font-weight:600;font-size:var(--step--1);color:var(--mint-deep);display:inline-flex;align-items:center;gap:.5rem}
+
+/* ============================================================
+   LIVING BACKGROUND — animated gradient mesh + grain
+   ============================================================ */
+.field{position:fixed;inset:0;z-index:var(--z-bg);overflow:hidden;pointer-events:none;background:
+  radial-gradient(120% 90% at 100% 0%, oklch(0.97 0.03 70 / 0.9), transparent 60%),
+  radial-gradient(120% 90% at 0% 100%, oklch(0.97 0.025 200 / 0.8), transparent 55%),
+  var(--bg);}
+.blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55;mix-blend-mode:multiply;contain:strict}
+.blob.b1{width:46vw;height:46vw;left:-8vw;top:-6vw;background:radial-gradient(circle at 35% 35%, var(--mint), transparent 70%);animation:drift1 22s ease-in-out infinite}
+.blob.b2{width:42vw;height:42vw;right:-10vw;top:8vh;background:radial-gradient(circle at 60% 40%, var(--peach), transparent 70%);animation:drift2 26s ease-in-out infinite}
+.blob.b3{width:50vw;height:50vw;left:12vw;top:58vh;background:radial-gradient(circle at 50% 50%, var(--sky), transparent 70%);animation:drift3 30s ease-in-out infinite}
+.blob.b4{width:34vw;height:34vw;right:6vw;bottom:-8vh;background:radial-gradient(circle at 50% 50%, var(--rose), transparent 72%);animation:drift1 28s ease-in-out infinite reverse}
+@keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(6vw,4vh) scale(1.12)}}
+@keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-5vw,6vh) scale(1.08)}}
+@keyframes drift3{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(4vw,-5vh) scale(1.15)}}
+.grain{position:fixed;inset:0;z-index:var(--z-bg);pointer-events:none;opacity:.04;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+@media (prefers-reduced-motion: reduce){ .blob{animation:none} }
+
+/* ============================================================
+   GLASS primitives
+   ============================================================ */
+.glass{
+  background:var(--glass);
+  backdrop-filter:blur(22px) saturate(1.6);
+  -webkit-backdrop-filter:blur(22px) saturate(1.6);
+  border:1px solid var(--glass-edge);
+  box-shadow:var(--glass-shadow), inset 0 1px 0 oklch(1 0 0 / 0.65);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn{display:inline-flex;align-items:center;gap:.6rem;font-family:var(--body);font-weight:600;
+  font-size:var(--step-0);padding:.85rem 1.4rem;border-radius:999px;border:1px solid transparent;
+  cursor:pointer;transition:transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s, background .3s;
+  white-space:nowrap;line-height:1}
+.btn:hover{transform:translateY(-2px)}
+.btn:active{transform:translateY(0)}
+.btn-primary{background:var(--ink);color:oklch(0.985 0.012 75);box-shadow:0 8px 24px oklch(0.31 0.06 245 / 0.22)}
+.btn-primary:hover{box-shadow:0 14px 36px oklch(0.31 0.08 245 / 0.30)}
+.btn-mint{background:var(--green);color:#fff;box-shadow:0 8px 22px oklch(0.64 0.155 152 / 0.34)}
+.btn-mint:hover{box-shadow:0 14px 34px oklch(0.64 0.155 152 / 0.42)}
+.btn-ghost{background:var(--glass-strong);backdrop-filter:blur(14px);border-color:var(--glass-edge);color:var(--ink);
+  box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.6)}
+.btn-ghost:hover{background:oklch(1 0 0 / 0.9)}
+.btn .sub{display:block;font-size:.72rem;font-weight:500;opacity:.7;margin-top:1px}
+.btn .lead{display:flex;flex-direction:column;align-items:flex-start;line-height:1.05}
+.btn svg{flex:none}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+.nav{position:fixed;top:0;left:0;right:0;z-index:var(--z-nav);padding:.7rem 0;transition:padding .4s}
+.nav .bar{display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  padding:.55rem .65rem .55rem 1rem;border-radius:999px;transition:background .4s, box-shadow .4s}
+.nav.scrolled .bar{background:var(--glass);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6);
+  border:1px solid var(--glass-edge);box-shadow:var(--glass-shadow)}
+.brand{display:flex;align-items:center;gap:.6rem;font-family:var(--display);font-weight:700;font-size:1.15rem}
+.brand .drop{width:34px;height:34px}
+.nav-links{display:flex;align-items:center;gap:.4rem}
+.nav-links a{padding:.5rem .8rem;border-radius:999px;font-weight:500;font-size:var(--step--1);color:var(--ink-soft);transition:color .25s, background .25s}
+.nav-links a:hover{color:var(--ink);background:oklch(1 0 0 / 0.55)}
+.nav-cta{display:flex;align-items:center;gap:.5rem}
+.menu-btn{display:none;background:var(--glass-strong);border:1px solid var(--glass-edge);width:44px;height:44px;border-radius:14px;cursor:pointer;align-items:center;justify-content:center}
+@media(max-width:880px){
+  .nav-links{display:none}
+  .menu-btn{display:flex}
+  .nav-cta .btn span.full{display:none}
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero{position:relative;z-index:var(--z-base);padding:clamp(7rem,12vh,11rem) 0 clamp(3rem,7vh,6rem)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(2rem,5vw,4.5rem);align-items:center}
+@media(max-width:980px){.hero-grid{grid-template-columns:1fr;gap:3rem;text-align:center}}
+
+.badge{display:inline-flex;align-items:center;gap:.55rem;padding:.45rem .9rem;border-radius:999px;
+  background:var(--glass-strong);border:1px solid var(--glass-edge);font-size:var(--step--1);font-weight:600;
+  color:var(--ink-soft);box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.6)}
+.badge .pip{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 4px oklch(0.64 0.155 152 / 0.18)}
+
+.hero h1{font-size:var(--step-5);font-weight:800;margin:1.3rem 0 0;max-width:14ch}
+.hero h1 em{font-style:normal;color:var(--mint-deep)}
+.hero .lede{margin:1.4rem 0 0;font-size:var(--step-1);color:var(--ink-soft);max-width:46ch}
+@media(max-width:980px){.hero .lede{margin-inline:auto}}
+.hero-actions{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:2rem}
+@media(max-width:980px){.hero-actions{justify-content:center}}
+.hero-trust{display:flex;align-items:center;gap:1.2rem;margin-top:1.8rem;flex-wrap:wrap;color:var(--ink-faint);font-size:var(--step--1)}
+@media(max-width:980px){.hero-trust{justify-content:center}}
+.hero-trust .dot{width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.4}
+
+/* phone + floating cards stage */
+.stage{position:relative;display:flex;justify-content:center;align-items:center;min-height:520px}
+.phone{position:relative;width:clamp(248px,30vw,310px);aspect-ratio:9/19.2;border-radius:44px;
+  background:linear-gradient(160deg, oklch(0.34 0.03 245), oklch(0.24 0.03 245));
+  padding:11px;box-shadow:0 40px 90px oklch(0.31 0.1 245 / 0.28), 0 8px 24px oklch(0.31 0.06 245 / 0.18);
+}
+.phone::after{content:"";position:absolute;top:14px;left:50%;translate:-50% 0;width:42%;height:26px;background:oklch(0.18 0.02 245);border-radius:0 0 16px 16px;z-index:3}
+.screen{position:relative;width:100%;height:100%;border-radius:34px;overflow:hidden;background:var(--bg);
+  display:flex;flex-direction:column}
+
+/* in-app mockup */
+.app-top{padding:2.4rem 1rem .7rem;display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(180deg, oklch(0.95 0.03 70), transparent)}
+.app-hi{font-family:var(--display);font-weight:700;font-size:1rem;color:var(--ink)}
+.app-hi small{display:block;font-family:var(--body);font-weight:500;font-size:.7rem;color:var(--ink-faint)}
+.app-kid{display:flex;align-items:center;gap:.4rem;background:#fff;border:1px solid var(--line);padding:.3rem .55rem;border-radius:999px;font-size:.72rem;font-weight:600}
+.app-kid .av{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 40% 35%, var(--sky), var(--mint))}
+.app-body{flex:1;padding:.4rem .8rem;display:flex;flex-direction:column;gap:.6rem;overflow:hidden}
+.status-card{border-radius:20px;padding:1rem;background:linear-gradient(150deg, oklch(0.90 0.07 158), oklch(0.93 0.05 175));
+  box-shadow:0 10px 24px oklch(0.64 0.12 152 / 0.18)}
+.status-card .lab{font-size:.66rem;font-weight:600;color:var(--mint-deep);text-transform:uppercase;letter-spacing:.06em}
+.status-card .big{font-family:var(--display);font-weight:800;font-size:1.7rem;color:var(--ink);margin-top:.15rem}
+.status-card .msg{font-size:.74rem;color:var(--ink-soft);font-weight:500;margin-top:.1rem}
+.spark{margin-top:.5rem;width:100%;height:34px;display:block}
+.quick{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem}
+.qa{border-radius:15px;background:#fff;border:1px solid var(--line);padding:.6rem .3rem;text-align:center;font-size:.62rem;font-weight:600;color:var(--ink-soft)}
+.qa .ic{width:30px;height:30px;border-radius:50%;margin:0 auto .3rem;display:flex;align-items:center;justify-content:center}
+.row-card{border-radius:15px;background:#fff;border:1px solid var(--line);padding:.6rem .7rem;display:flex;align-items:center;gap:.55rem}
+.row-card .ic{width:30px;height:30px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center}
+.row-card .t{font-size:.72rem;font-weight:700}
+.row-card .s{font-size:.62rem;color:var(--ink-faint)}
+.app-tabs{display:grid;grid-template-columns:repeat(4,1fr);padding:.5rem .4rem .7rem;background:#fff;border-top:1px solid var(--line)}
+.tab{display:flex;flex-direction:column;align-items:center;gap:.18rem;font-size:.56rem;font-weight:600;color:var(--ink-faint)}
+.tab.on{color:var(--mint-deep)}
+.tab svg{width:20px;height:20px}
+
+/* floating glass chips around phone */
+.float{position:absolute;border-radius:18px;padding:.7rem .85rem;display:flex;align-items:center;gap:.6rem;
+  font-weight:600;font-size:.84rem;z-index:4;background:oklch(1 0 0 / 0.88);border:1px solid var(--glass-edge);box-shadow:var(--glass-shadow)}
+.float .ic{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex:none}
+.float small{display:block;font-weight:500;font-size:.7rem;color:var(--ink-faint)}
+.f-glu{top:6%;left:-6%}
+.f-emo{bottom:16%;right:-8%}
+.f-rem{bottom:2%;left:-2%}
+@media(max-width:980px){.f-glu{left:2%}.f-emo{right:2%}}
+@media(max-width:560px){.float{display:none}}
+
+/* ============================================================
+   MARQUEE PROMISE
+   ============================================================ */
+.promise{position:relative;z-index:var(--z-base);padding:clamp(3rem,7vh,5.5rem) 0;text-align:center}
+.promise h2{font-size:var(--step-4);font-weight:800;max-width:18ch;margin:0 auto}
+.promise h2 .a{color:var(--mint-deep)}
+.promise h2 .b{color:var(--red)}
+.promise p{margin:1.3rem auto 0;color:var(--ink-soft);font-size:var(--step-1)}
+
+/* ============================================================
+   SECTION scaffolding
+   ============================================================ */
+section{position:relative;z-index:var(--z-base)}
+.section-head{max-width:720px;margin-bottom:clamp(2rem,4vw,3.2rem)}
+.section-head.center{margin-inline:auto;text-align:center}
+.section-head h2{font-size:var(--step-3);font-weight:800;margin:.7rem 0 0}
+.section-head p{margin-top:1rem;color:var(--ink-soft);font-size:var(--step-1)}
+.section-head.center p{margin-inline:auto}
+.pad{padding:clamp(3.5rem,8vh,7rem) 0}
+
+/* ============================================================
+   FEATURES — bento
+   ============================================================ */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:1rem;grid-auto-rows:minmax(168px,auto)}
+.cell{border-radius:var(--radius);padding:1.5rem;position:relative;overflow:hidden;display:flex;flex-direction:column;
+  background:oklch(1 0 0 / 0.82);border:1px solid var(--glass-edge);box-shadow:var(--glass-shadow);transition:transform .5s cubic-bezier(.16,1,.3,1), box-shadow .5s}
+.cell:hover{transform:translateY(-5px);box-shadow:0 24px 60px oklch(0.31 0.08 245 / 0.16)}
+.cell h3{font-size:var(--step-1);margin-top:.7rem}
+.cell p{font-size:var(--step--1);color:var(--ink-soft);margin-top:.5rem}
+.cell .ic{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 0 oklch(1 0 0 / 0.5)}
+.cell .ic svg{width:26px;height:26px}
+.c-wide{grid-column:span 3}
+.c-third{grid-column:span 2}
+.c-half{grid-column:span 3}
+.c-emerg{grid-column:span 6;background:linear-gradient(135deg, oklch(0.95 0.04 25), oklch(0.97 0.02 40));flex-direction:row;align-items:center;gap:1.4rem;flex-wrap:wrap}
+.c-emerg .ic{background:var(--red);box-shadow:0 8px 22px oklch(0.62 0.205 25 / 0.35)}
+.c-emerg h3{margin-top:0}
+.c-emerg .body{flex:1;min-width:240px}
+.tag{display:inline-block;font-size:.7rem;font-weight:700;color:var(--red);background:oklch(0.62 0.205 25 / 0.12);padding:.2rem .6rem;border-radius:999px;margin-bottom:.5rem}
+@media(max-width:880px){
+  .bento{grid-template-columns:repeat(2,1fr)}
+  .c-wide,.c-third,.c-half{grid-column:span 1}
+  .c-emerg{grid-column:span 2}
+}
+@media(max-width:560px){
+  .bento{grid-template-columns:1fr}
+  .c-wide,.c-third,.c-half,.c-emerg{grid-column:span 1}
+  .c-emerg{flex-direction:column;align-items:flex-start}
+}
+
+/* ============================================================
+   HOW / MOMENTS
+   ============================================================ */
+.moments{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+@media(max-width:880px){.moments{grid-template-columns:1fr}}
+.moment{position:relative;padding:1.8rem 1.6rem;border-radius:var(--radius);background:oklch(1 0 0 / 0.82);
+  border:1px solid var(--glass-edge);box-shadow:var(--glass-shadow);overflow:hidden}
+.moment .n{font-family:var(--display);font-weight:800;font-size:2.6rem;color:var(--mint);line-height:1}
+.moment h3{font-size:var(--step-1);margin:.6rem 0 .5rem}
+.moment p{font-size:var(--step--1);color:var(--ink-soft)}
+.moment .glow{position:absolute;width:140px;height:140px;border-radius:50%;filter:blur(50px);opacity:.5;right:-30px;top:-30px}
+
+/* ============================================================
+   ABOUT
+   ============================================================ */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(2rem,5vw,4rem);align-items:center}
+@media(max-width:900px){.about-grid{grid-template-columns:1fr;gap:2.4rem}}
+.about-card{border-radius:28px;padding:clamp(1.8rem,4vw,3rem);background:linear-gradient(155deg, oklch(0.94 0.05 200), oklch(0.95 0.04 70));
+  border:1px solid var(--glass-edge);box-shadow:var(--glass-shadow);position:relative;overflow:hidden}
+.about-card .mascot{width:clamp(150px,26vw,220px);margin:0 auto;animation:mascotFloat 3.2s ease-in-out infinite alternate}
+@keyframes mascotFloat{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+@media (prefers-reduced-motion: reduce){.about-card .mascot{animation:none}}
+.about-card .quote{font-family:var(--display);font-weight:700;font-size:var(--step-1);text-align:center;margin-top:1rem;color:var(--ink)}
+.about h2{font-size:var(--step-3);font-weight:800}
+.about p{margin-top:1.2rem;color:var(--ink-soft);font-size:var(--step-0)}
+.about .goals{margin-top:1.6rem;display:flex;flex-direction:column;gap:.8rem}
+.goal{display:flex;gap:.8rem;align-items:flex-start}
+.goal .ck{width:26px;height:26px;border-radius:9px;flex:none;background:var(--green);display:flex;align-items:center;justify-content:center;margin-top:1px}
+.goal b{font-weight:700}
+.goal span{display:block;color:var(--ink-soft);font-size:var(--step--1)}
+
+/* ============================================================
+   CHALLENGE / CIIA
+   ============================================================ */
+.challenge{position:relative}
+.challenge .panel{border-radius:30px;padding:clamp(2rem,5vw,3.6rem);background:linear-gradient(150deg, oklch(0.30 0.04 245), oklch(0.22 0.05 250));
+  color:oklch(0.96 0.01 245);overflow:hidden;position:relative;box-shadow:0 30px 80px oklch(0.31 0.1 245 / 0.3)}
+.challenge .panel .glow{position:absolute;width:50%;height:120%;right:-10%;top:-20%;border-radius:50%;
+  background:radial-gradient(circle, oklch(0.7 0.13 162 / 0.5), transparent 70%);filter:blur(40px)}
+.challenge h2{color:#fff;font-size:var(--step-3);font-weight:800;max-width:18ch;position:relative}
+.challenge p{color:oklch(0.86 0.02 245);margin-top:1.2rem;max-width:60ch;position:relative}
+.logos{display:flex;flex-wrap:wrap;gap:1rem;margin-top:2.2rem;position:relative}
+.logo-badge{display:flex;align-items:center;gap:.7rem;padding:.8rem 1.1rem;border-radius:16px;
+  background:oklch(1 0 0 / 0.08);border:1px solid oklch(1 0 0 / 0.16);backdrop-filter:blur(8px)}
+.logo-badge .mark{width:42px;height:42px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-weight:800;font-size:.86rem;flex:none}
+.logo-badge .txt b{display:block;font-weight:700;font-size:.92rem;color:#fff;font-family:var(--display)}
+.logo-badge .txt span{font-size:.72rem;color:oklch(0.82 0.02 245)}
+
+/* ============================================================
+   TEAM
+   ============================================================ */
+.team{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+@media(max-width:820px){.team{grid-template-columns:1fr}}
+.member{border-radius:var(--radius);padding:1.8rem;text-align:center;background:oklch(1 0 0 / 0.82);
+  border:1px solid var(--glass-edge);box-shadow:var(--glass-shadow);transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.member:hover{transform:translateY(-6px)}
+.member .ava{width:88px;height:88px;border-radius:50%;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;
+  font-family:var(--display);font-weight:800;font-size:1.7rem;color:#fff;box-shadow:0 10px 26px oklch(0.31 0.08 245 / 0.18)}
+.member h3{font-size:var(--step-1)}
+.member .role{color:var(--mint-deep);font-weight:600;font-size:var(--step--1);margin-top:.2rem}
+.member .inst{color:var(--ink-faint);font-size:.78rem;margin-top:.4rem}
+
+/* ============================================================
+   DOWNLOAD CTA
+   ============================================================ */
+.cta{position:relative}
+.cta .panel{border-radius:32px;padding:clamp(2.6rem,6vw,4.6rem);text-align:center;overflow:hidden;position:relative;
+  background:linear-gradient(155deg, oklch(0.90 0.07 158), oklch(0.92 0.06 70) 55%, oklch(0.91 0.06 220));
+  border:1px solid var(--glass-edge);box-shadow:0 30px 80px oklch(0.31 0.08 245 / 0.16)}
+.cta h2{font-size:var(--step-4);font-weight:800;max-width:16ch;margin:0 auto}
+.cta p{margin:1.2rem auto 0;color:var(--ink-soft);font-size:var(--step-1)}
+.cta-actions{display:flex;gap:.9rem;justify-content:center;flex-wrap:wrap;margin-top:2rem}
+.store{display:inline-flex;align-items:center;gap:.7rem;padding:.85rem 1.5rem;border-radius:18px;
+  background:var(--ink);color:oklch(0.985 0.012 75);font-weight:600;transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s;
+  box-shadow:0 10px 28px oklch(0.31 0.08 245 / 0.24);border:none;cursor:pointer;font:inherit;text-decoration:none;line-height:inherit}
+button.store{text-align:left}
+.store:hover{transform:translateY(-3px);box-shadow:0 18px 40px oklch(0.31 0.1 245 / 0.3)}
+.store.soon{background:var(--glass-strong);color:var(--ink-soft);border:1px solid var(--glass-edge);box-shadow:inset 0 1px 0 oklch(1 0 0 / .6)}
+.store .lead{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}
+.store .lead small{font-size:.68rem;font-weight:500;opacity:.7}
+.store .lead b{font-size:1rem;font-weight:700;font-family:var(--display)}
+.store.soon .pill{font-size:.6rem;background:var(--mint);color:var(--mint-deep);padding:.15rem .45rem;border-radius:999px;font-weight:700;margin-left:.3rem}
+.dl-hint{margin:1rem auto 0;max-width:36ch;font-size:var(--step--1);color:var(--ink-faint);line-height:1.5}
+.dl-hint strong{color:var(--ink-soft);font-weight:600}
+
+body.dl-open{overflow:hidden;position:fixed;left:0;right:0;width:100%;touch-action:none}
+
+/* download confirm modal */
+.dl-modal{position:fixed;inset:0;z-index:130;display:none;align-items:flex-start;justify-content:center;
+  padding:max(.6rem, env(safe-area-inset-top)) 1rem max(1rem, env(safe-area-inset-bottom));
+  overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.dl-modal.open{display:flex}
+.dl-modal .dl-backdrop{position:fixed;inset:0;background:oklch(0.31 0.05 245 / 0.28);backdrop-filter:blur(6px);z-index:-1}
+.dl-dialog{position:relative;width:min(100%,520px);margin:0 auto;border-radius:24px;padding:1.25rem 1.25rem 1.1rem;
+  background:oklch(1 0 0 / 0.98);border:1px solid var(--glass-edge);box-shadow:0 24px 70px oklch(0.31 0.1 245 / 0.22)}
+.dl-dialog-head{margin-bottom:.85rem;outline:none}
+.dl-browser-badge{display:inline-flex;align-items:center;gap:.45rem;font-size:var(--step--1);font-weight:700;color:var(--mint-deep);
+  background:oklch(0.64 0.155 152 / 0.12);padding:.35rem .75rem;border-radius:999px;margin-bottom:.7rem}
+.dl-dialog h2{font-size:var(--step-1);font-weight:800;line-height:1.2;margin:0}
+.dl-safe{background:linear-gradient(135deg, oklch(0.94 0.05 158), oklch(0.95 0.04 200));border:1px solid oklch(0.64 0.12 152 / 0.25);
+  border-radius:16px;padding:1rem 1.1rem;margin:1rem 0;font-size:var(--step--1);color:var(--ink-soft);line-height:1.55}
+.dl-safe strong{color:var(--ink)}
+.dl-quotes{display:flex;flex-direction:column;gap:.65rem;margin:.5rem 0 1rem}
+.dl-quote{border-radius:14px;padding:.85rem 1rem;background:oklch(0.97 0.01 245);border:1px solid var(--line)}
+.dl-quote .lab{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);margin-bottom:.35rem}
+.dl-quote .txt{font-family:var(--display);font-weight:700;font-size:.95rem;color:var(--ink);line-height:1.35}
+.dl-quote .sub{font-size:var(--step--1);color:var(--ink-soft);margin-top:.35rem;line-height:1.45}
+.dl-steps{margin:0 0 1.2rem;padding-left:1.2rem;color:var(--ink-soft);font-size:var(--step--1)}
+.dl-steps li{margin-bottom:.45rem;line-height:1.45}
+.dl-steps li strong{color:var(--ink);font-weight:600}
+.dl-actions{display:flex;gap:.65rem;justify-content:flex-end;flex-wrap:wrap;padding-top:.2rem}
+.dl-actions .btn{justify-content:center;min-width:9rem}
+.dl-note{font-size:.78rem;color:var(--ink-faint);margin-top:.85rem;line-height:1.45}
+@media(max-width:480px){.dl-actions{flex-direction:column-reverse}.dl-actions .btn{width:100%}}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.foot{position:relative;z-index:var(--z-base);padding:3.5rem 0 2.5rem;margin-top:clamp(3rem,7vh,6rem);border-top:1px solid var(--line)}
+.foot-top{display:flex;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+.foot .brand{font-size:1.2rem}
+.foot .tag{color:var(--ink-soft);font-size:var(--step--1);margin-top:.8rem;max-width:36ch}
+.foot-links{display:flex;gap:2.5rem;flex-wrap:wrap}
+.foot-col h4{font-family:var(--body);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint);font-weight:700;margin-bottom:.8rem}
+.foot-col a{display:block;color:var(--ink-soft);font-size:var(--step--1);padding:.25rem 0;transition:color .2s}
+.foot-col a:hover{color:var(--mint-deep)}
+.foot-bottom{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--line);display:flex;justify-content:space-between;
+  gap:1rem;flex-wrap:wrap;color:var(--ink-faint);font-size:.8rem}
+.disclaimer{margin-top:1rem;color:var(--ink-faint);font-size:.74rem;max-width:75ch;line-height:1.55}
+
+/* ============================================================
+   REVEAL (enhances visible default — gated only when JS marks html.motion)
+   ============================================================ */
+html.motion [data-reveal]{opacity:0;transform:translateY(26px)}
+html.motion [data-reveal].in{opacity:1;transform:none;transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
+@media (prefers-reduced-motion: reduce){
+  html.motion [data-reveal]{opacity:1 !important;transform:none !important;transition:none !important}
+}
+
+/* mobile menu sheet */
+.sheet{position:fixed;inset:0;z-index:var(--z-modal);display:none;align-items:flex-start;justify-content:center;padding-top:5rem}
+.sheet.open{display:flex}
+.sheet .panel{width:min(100% - 2rem, 420px);border-radius:24px;padding:1rem;display:flex;flex-direction:column;gap:.3rem}
+.sheet a{padding:.9rem 1rem;border-radius:14px;font-weight:600;color:var(--ink)}
+.sheet a:hover{background:oklch(1 0 0 / 0.6)}
+.sheet .backdrop{position:absolute;inset:0;background:oklch(0.31 0.05 245 / 0.18);backdrop-filter:blur(4px);z-index:-1}
+</style>
+</head>
+<body>
+
+<!-- download guide modal (top of body = always visible on open) -->
+<div class="dl-modal" id="dlModal" hidden aria-hidden="true">
+  <div class="dl-backdrop" data-dl-close tabindex="-1"></div>
+  <div class="dl-dialog" role="dialog" aria-modal="true" aria-labelledby="dlModalTitle">
+    <div class="dl-dialog-head" id="dlDialogHead" tabindex="-1">
+      <span class="dl-browser-badge" id="dlBrowserBadge"></span>
+      <h2 id="dlModalTitle"></h2>
+    </div>
+    <div class="dl-safe" id="dlSafe"></div>
+    <div class="dl-quotes" id="dlQuotes"></div>
+    <ol class="dl-steps" id="dlSteps"></ol>
+    <p class="dl-note" id="dlNote"></p>
+    <div class="dl-actions">
+      <button type="button" class="btn btn-ghost" data-dl-close>Cancelar</button>
+      <button type="button" class="btn btn-mint" id="dlConfirm">Entendi — baixar agora</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== LIVING BACKGROUND ===================== -->
+<div class="field" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="blob b4"></div>
+</div>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- reusable mascot symbol -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="dropGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#A9CCE3"/><stop offset="42%" stop-color="#A8D8B9"/><stop offset="100%" stop-color="#F5C9A0"/>
+    </linearGradient>
+    <linearGradient id="shineGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fff" stop-opacity=".7"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <g id="gotinha">
+      <path d="M100 8 C100 8 26 96 26 154 C26 202 59 236 100 236 C141 236 174 202 174 154 C174 96 100 8 100 8Z" fill="url(#dropGrad)"/>
+      <ellipse cx="72" cy="92" rx="22" ry="38" fill="url(#shineGrad)"/>
+      <path d="M70 150 q8 -10 18 0" stroke="#2C3E50" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M112 150 q8 -10 18 0" stroke="#2C3E50" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <circle cx="79" cy="168" r="7" fill="#2C3E50"/><circle cx="121" cy="168" r="7" fill="#2C3E50"/>
+      <circle cx="81.5" cy="165" r="2.4" fill="#fff"/><circle cx="123.5" cy="165" r="2.4" fill="#fff"/>
+      <path d="M86 186 Q100 200 114 186" stroke="#2C3E50" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+      <ellipse cx="66" cy="182" rx="12" ry="7" fill="#F1948A" opacity=".5"/>
+      <ellipse cx="134" cy="182" rx="12" ry="7" fill="#F1948A" opacity=".5"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- ===================== NAV ===================== -->
+<header class="nav" id="nav">
+  <div class="wrap">
+    <div class="bar">
+      <a href="#top" class="brand" aria-label="Doce Cuidado — início">
+        <svg class="drop" viewBox="0 0 200 244"><use href="#gotinha"/></svg>
+        Doce&nbsp;Cuidado
+      </a>
+      <nav class="nav-links" aria-label="Principal">
+        <a href="#recursos">Recursos</a>
+        <a href="#como">Como funciona</a>
+        <a href="#sobre">Sobre</a>
+        <a href="#desafio">Desafio CI-IA</a>
+        <a href="#time">Time</a>
+      </nav>
+      <div class="nav-cta">
+        <a href="#baixar" class="btn btn-mint">Baixar <span class="full">o app</span></a>
+        <button class="menu-btn" id="menuBtn" aria-label="Abrir menu" aria-expanded="false">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- mobile sheet -->
+<div class="sheet" id="sheet">
+  <div class="backdrop" data-close></div>
+  <nav class="panel glass" aria-label="Menu">
+    <a href="#recursos" data-close>Recursos</a>
+    <a href="#como" data-close>Como funciona</a>
+    <a href="#sobre" data-close>Sobre</a>
+    <a href="#desafio" data-close>Desafio CI-IA</a>
+    <a href="#time" data-close>Time</a>
+    <a href="#baixar" class="btn btn-mint" data-close style="justify-content:center;margin-top:.4rem">Baixar o app</a>
+  </nav>
+</div>
+
+<main id="top">
+
+<!-- ===================== HERO ===================== -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="badge"><span class="pip"></span> Para famílias que cuidam de crianças com diabetes</span>
+      <h1 data-reveal>Quando o diagnóstico assusta, o <em>Doce&nbsp;Cuidado</em> acalma.</h1>
+      <p class="lede" data-reveal>Um caderno inteligente que segura a mão de pais, avós e cuidadores nos primeiros dias depois do diagnóstico — tipo 1, tipo 2 ou ainda em confirmação. Sem jargão. Sem pânico. No tempo da sua família.</p>
+      <div class="hero-actions" data-reveal>
+        <a href="#baixar" class="btn btn-primary">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5V3.5c0-.6.7-1 1.2-.6l13.4 8.1c.5.3.5 1 0 1.3L4.2 21.1c-.5.4-1.2 0-1.2-.6Z"/></svg>
+          <span class="lead"><span class="sub">Disponível para</span> Android</span>
+        </a>
+        <a href="#como" class="btn btn-ghost">Ver como funciona</a>
+      </div>
+      <div class="hero-trust" data-reveal>
+        <span>Health &amp; Fitness · não é dispositivo médico</span>
+        <span class="dot"></span>
+        <span>Dados protegidos (LGPD)</span>
+        <span class="dot"></span>
+        <span>Funciona offline</span>
+      </div>
+    </div>
+
+    <!-- phone stage -->
+    <div class="stage" data-reveal>
+      <div class="phone" id="phone">
+        <div class="screen">
+          <div class="app-top">
+            <div class="app-hi">Oi, Rafael 👋<small>Hoje, 14:32</small></div>
+            <div class="app-kid"><span class="av"></span> Helena</div>
+          </div>
+          <div class="app-body">
+            <div class="status-card">
+              <div class="lab">Última glicemia</div>
+              <div class="big">112 <small style="font-size:.8rem;font-weight:600;color:var(--ink-soft)">mg/dL</small></div>
+              <div class="msg">Tá tudo bem por aqui 😊</div>
+              <svg class="spark" viewBox="0 0 220 34" preserveAspectRatio="none" fill="none">
+                <path d="M2 24 L34 18 L64 26 L96 12 L128 20 L160 8 L192 16 L218 10" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="218" cy="10" r="4" fill="var(--green)"/>
+              </svg>
+            </div>
+            <div class="quick">
+              <div class="qa"><div class="ic" style="background:oklch(0.90 0.07 158)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--mint-deep)" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v6m0 12a6 6 0 0 0 6-6c0-4-6-9-6-9s-6 5-6 9a6 6 0 0 0 6 6Z"/></svg></div>Glicemia</div>
+              <div class="qa"><div class="ic" style="background:oklch(0.90 0.06 305)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ia)" stroke-width="2.2" stroke-linecap="round"><path d="m18 2 4 4M19 5 7.5 16.5 4 20l3.5-1L19 7.5z"/></svg></div>Insulina</div>
+              <div class="qa"><div class="ic" style="background:oklch(0.92 0.06 66)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--peach-deep)" stroke-width="2.2" stroke-linecap="round"><path d="M4 3v8a3 3 0 0 0 6 0V3M7 3v18M17 3c-1.5 1-2 3-2 6s.5 4 2 4 2-1 2-4-.5-5-2-6Zm0 10v8"/></svg></div>Refeição</div>
+            </div>
+            <div class="row-card">
+              <div class="ic" style="background:oklch(0.62 0.205 25 / 0.12)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.2" stroke-linecap="round"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
+              <div><div class="t">Modo emergência</div><div class="s">Hipo e hiper, passo a passo</div></div>
+            </div>
+          </div>
+          <div class="app-tabs">
+            <div class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>Início</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 5a3 3 0 0 1 0 6m4.5 9a5.5 5.5 0 0 0-4-5.3"/></svg>Pacientes</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 5h7a3 3 0 0 1 3 3v11a2.5 2.5 0 0 0-2.5-2.5H3zM21 5h-7a3 3 0 0 0-3 3v11a2.5 2.5 0 0 1 2.5-2.5H21z"/></svg>Aprender</div>
+            <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Perfil</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- floating glass chips -->
+      <div class="float f-glu">
+        <div class="ic" style="background:oklch(0.90 0.07 158)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--mint-deep)" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v6m0 12a6 6 0 0 0 6-6c0-4-6-9-6-9s-6 5-6 9a6 6 0 0 0 6 6Z"/></svg></div>
+        <div>Glicemia<small>registrada em 2s</small></div>
+      </div>
+      <div class="float f-emo">
+        <div class="ic" style="background:oklch(0.92 0.06 66)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--peach-deep)" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s-7-4.3-9.5-8.3A5.4 5.4 0 0 1 12 6a5.4 5.4 0 0 1 9.5 6.7C19 16.7 12 21 12 21Z"/></svg></div>
+        <div>Sem culpa<small>cuidar é aprender</small></div>
+      </div>
+      <div class="float f-rem">
+        <div class="ic" style="background:oklch(0.90 0.06 236)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--sky-deep)" stroke-width="2.2" stroke-linecap="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+        <div>Lembretes<small>na hora certa</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PROMISE ===================== -->
+<section class="promise">
+  <div class="wrap">
+    <h2 data-reveal>No dia normal, o app <span class="a">conversa.</span><br>No pânico, o app <span class="b">comanda.</span></h2>
+    <p data-reveal>Calma quando dá tempo de aprender. Direção firme quando cada segundo conta.</p>
+  </div>
+</section>
+
+<!-- ===================== FEATURES ===================== -->
+<section id="recursos" class="pad">
+  <div class="wrap">
+    <div class="section-head" data-reveal>
+      <span class="eyebrow">Tudo num só lugar</span>
+      <h2>Os cuidados do dia a dia, sem peso.</h2>
+      <p>Registrar, entender e agir — com uma interface pensada para mãos trêmulas, pressa e olhos cansados.</p>
+    </div>
+
+    <div class="bento">
+      <article class="cell c-wide" data-reveal>
+        <div class="ic" style="background:oklch(0.90 0.07 158)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--mint-deep)" stroke-width="2" stroke-linecap="round"><path d="M12 3v7m0 11a7 7 0 0 0 7-7c0-5-7-10-7-10S5 9 5 14a7 7 0 0 0 7 7Z"/></svg></div>
+        <h3>Glicemia em segundos</h3>
+        <p>Anote a medição com um toque e veja na hora se está tudo bem — verde, amarelo ou vermelho. A linguagem é humana, nunca clínica.</p>
+      </article>
+
+      <article class="cell c-third" data-reveal>
+        <div class="ic" style="background:oklch(0.90 0.06 305)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--ia)" stroke-width="2" stroke-linecap="round"><path d="m18 2 4 4M19 5 7.5 16.5 4 20l3.5-1L19 7.5z"/></svg></div>
+        <h3>Insulina &amp; doses</h3>
+        <p>Histórico de aplicações claro, com horários e tipos. Confirmação antes de qualquer registro de dose.</p>
+      </article>
+
+      <article class="cell c-third" data-reveal>
+        <div class="ic" style="background:oklch(0.92 0.06 66)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--peach-deep)" stroke-width="2" stroke-linecap="round"><path d="M4 3v8a3 3 0 0 0 6 0V3M7 3v18M17 3c-1.5 1-2 3-2 6s.5 4 2 4 2-1 2-4-.5-5-2-6Zm0 10v8"/></svg></div>
+        <h3>Refeições com IA</h3>
+        <p>Estime carboidratos e nutrientes pela descrição ou foto do prato — opcional e com consentimento.</p>
+      </article>
+
+      <article class="cell c-half" data-reveal>
+        <div class="ic" style="background:oklch(0.90 0.06 236)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--sky-deep)" stroke-width="2" stroke-linecap="round"><path d="M3 5h7a3 3 0 0 1 3 3v11a2.5 2.5 0 0 0-2.5-2.5H3zM21 5h-7a3 3 0 0 0-3 3v11a2.5 2.5 0 0 1 2.5-2.5H21z"/></svg></div>
+        <h3>Aprender sem medo</h3>
+        <p>Lições curtas e um quiz leve que ensinam a reconhecer hipo e hiperglicemia. Errar nunca gera culpa — só aprendizado.</p>
+      </article>
+
+      <article class="cell c-half" data-reveal>
+        <div class="ic" style="background:oklch(0.90 0.07 158)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--mint-deep)" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 5a3 3 0 0 1 0 6m4.5 9a5.5 5.5 0 0 0-4-5.3"/></svg></div>
+        <h3>Cuide em família</h3>
+        <p>Convide avós, babás e o médico por um código. Cada um com seu acesso — todos na mesma página, sem grupos de mensagem confusos.</p>
+      </article>
+
+      <article class="cell c-emerg" data-reveal>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></div>
+        <div class="body">
+          <span class="tag">Modo emergência</span>
+          <h3>Quando bate o desespero, o app assume o comando.</h3>
+          <p>Passo a passo para hipo e hiperglicemia, contatos de emergência a um toque e instruções calmas e diretas — porque sob estresse ninguém deveria precisar pensar duas vezes.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== HOW / MOMENTS ===================== -->
+<section id="como" class="pad">
+  <div class="wrap">
+    <div class="section-head center" data-reveal>
+      <span class="eyebrow">Do diagnóstico à rotina</span>
+      <h2>Três momentos, um companheiro.</h2>
+    </div>
+    <div class="moments">
+      <article class="moment" data-reveal>
+        <div class="glow" style="background:var(--peach)"></div>
+        <div class="n">01</div>
+        <h3>O choque</h3>
+        <p>Nas primeiras horas em casa, o app explica o essencial com calma e mostra exatamente o que fazer agora — sem termos médicos assustadores.</p>
+      </article>
+      <article class="moment" data-reveal>
+        <div class="glow" style="background:var(--mint)"></div>
+        <div class="n">02</div>
+        <h3>A rotina</h3>
+        <p>Glicemias, insulina e refeições viram gestos rápidos. Lembretes na hora certa e aprendizado em pequenas doses constroem confiança dia após dia.</p>
+      </article>
+      <article class="moment" data-reveal>
+        <div class="glow" style="background:var(--sky)"></div>
+        <div class="n">03</div>
+        <h3>O pânico</h3>
+        <p>Se algo sair do controle, o Modo Emergência assume: instruções diretas, contatos rápidos e a certeza de não estar sozinho.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ABOUT ===================== -->
+<section id="sobre" class="pad about">
+  <div class="wrap about-grid">
+    <div class="about-card" data-reveal>
+      <svg class="mascot" id="aboutMascot" viewBox="0 0 200 244"><use href="#gotinha"/></svg>
+      <div class="quote">“Tá tudo bem por aqui.”<br><span style="font-weight:500;font-size:var(--step--1);color:var(--ink-soft)">— a Gotinha do Cuidado</span></div>
+    </div>
+    <div data-reveal>
+      <span class="eyebrow">Sobre o projeto</span>
+      <h2>Nasceu para tirar o medo dos primeiros dias.</h2>
+      <p>O diabetes na infância chega de repente e joga a família numa rotina nova de medições, doses e decisões — seja tipo 1, tipo 2 ou enquanto o tipo ainda está sendo confirmado. Entre a alta hospitalar e a próxima consulta, existe um vão silencioso de dúvida e ansiedade. O <strong>Doce Cuidado</strong> existe para preencher esse vão — não como um dispositivo médico, mas como um caderno inteligente e acolhedor que orienta com calma.</p>
+      <div class="goals">
+        <div class="goal"><span class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg></span><div><b>Reduzir o pânico</b><span>Orientação clara quando a família mais precisa.</span></div></div>
+        <div class="goal"><span class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg></span><div><b>Construir autonomia</b><span>Aprender a reconhecer sinais e agir com segurança.</span></div></div>
+        <div class="goal"><span class="ck"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M5 13l4 4L19 7"/></svg></span><div><b>Unir quem cuida</b><span>Pais, avós, cuidadores e médico, conectados com privacidade.</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== CHALLENGE / CIIA ===================== -->
+<section id="desafio" class="pad challenge">
+  <div class="wrap">
+    <div class="panel" data-reveal>
+      <div class="glow"></div>
+      <span class="eyebrow" style="color:var(--mint)">Um projeto com propósito</span>
+      <h2>Criado para o desafio do CI-IA Saúde, da UFMG.</h2>
+      <p>O <strong>Doce Cuidado</strong> nasceu como resposta de estudantes do <strong>IFMG</strong> ao desafio do <strong>Centro de Inovação em Inteligência Artificial para a Saúde (CI-IA Saúde)</strong>, sediado na <strong>UFMG</strong> — um centro que reúne computação, engenharia e medicina para criar soluções de IA que apoiam pacientes e profissionais de saúde. Nossa aposta: usar tecnologia com responsabilidade e ética para acolher famílias reais, em um momento real de vulnerabilidade.</p>
+      <div class="logos">
+        <div class="logo-badge">
+          <span class="mark" style="background:linear-gradient(135deg,var(--green),var(--mint));color:#0a3a22">IFMG</span>
+          <span class="txt"><b>IFMG</b><span>Instituto Federal de Minas Gerais</span></span>
+        </div>
+        <div class="logo-badge">
+          <span class="mark" style="background:linear-gradient(135deg,var(--sky-deep),var(--sky));color:#06243f">UFMG</span>
+          <span class="txt"><b>UFMG</b><span>Universidade Federal de Minas Gerais</span></span>
+        </div>
+        <div class="logo-badge">
+          <span class="mark" style="background:linear-gradient(135deg,var(--ia),oklch(0.78 0.1 305));color:#2a0e3c">IA</span>
+          <span class="txt"><b>CI-IA Saúde</b><span>Inovação em IA para a Saúde</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TEAM ===================== -->
+<section id="time" class="pad">
+  <div class="wrap">
+    <div class="section-head center" data-reveal>
+      <span class="eyebrow">Quem faz</span>
+      <h2>O time por trás do cuidado.</h2>
+      <p>Estudantes do IFMG unindo tecnologia, design e empatia para transformar um momento difícil em cuidado de verdade.</p>
+    </div>
+    <div class="team">
+      <article class="member" data-reveal>
+        <div class="ava" style="background:linear-gradient(135deg,var(--green),var(--mint-deep))">RF</div>
+        <h3>Rafael Felipe</h3>
+        <div class="role">Desenvolvimento &amp; Produto</div>
+        <div class="inst">IFMG</div>
+      </article>
+      <article class="member" data-reveal>
+        <div class="ava" style="background:linear-gradient(135deg,var(--peach-deep),var(--rose))">CB</div>
+        <h3>Clara Batista</h3>
+        <div class="role">Pesquisa &amp; Conteúdo</div>
+        <div class="inst">IFMG</div>
+      </article>
+      <article class="member" data-reveal>
+        <div class="ava" style="background:linear-gradient(135deg,var(--sky-deep),var(--sky))">EM</div>
+        <h3>Eduardo Matos</h3>
+        <div class="role">Design &amp; Experiência</div>
+        <div class="inst">IFMG</div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== DOWNLOAD CTA ===================== -->
+<section id="baixar" class="pad cta">
+  <div class="wrap">
+    <div class="panel" data-reveal>
+      <svg class="drop" width="64" height="78" viewBox="0 0 200 244" style="margin:0 auto 1rem"><use href="#gotinha"/></svg>
+      <h2>Leve o Doce Cuidado para perto da sua família.</h2>
+      <p>Gratuito, leve e pronto para os dias bons e os difíceis.</p>
+      <div class="cta-actions">
+        <button type="button" class="store" id="androidBtn" data-dl-trigger>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M3 20.5V3.5c0-.6.7-1 1.2-.6l13.4 8.1c.5.3.5 1 0 1.3L4.2 21.1c-.5.4-1.2 0-1.2-.6Z"/></svg>
+          <span class="lead"><small>Baixar APK para</small><b>Android</b></span>
+        </button>
+        <span class="store soon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M16.7 1.5c.1 1-.3 2-1 2.8-.7.8-1.8 1.4-2.8 1.3-.1-1 .4-2 1-2.7.8-.8 1.9-1.4 2.8-1.4ZM20 17.2c-.5 1.2-.8 1.7-1.4 2.7-.9 1.4-2.2 3.1-3.8 3.1-1.4 0-1.8-.9-3.7-.9s-2.3.9-3.7.9c-1.6 0-2.8-1.5-3.7-2.9C1.1 16.6.8 11.9 2.4 9.4 3.5 7.7 5.3 6.6 7 6.6c1.7 0 2.8 1 4.2 1 1.4 0 2.2-1 4.2-1 1.5 0 3 .8 4.1 2.2-3.6 2-3 7.1.5 8.4Z"/></svg>
+          <span class="lead"><small>Em breve para</small><b>iOS <span class="pill">em breve</span></b></span>
+        </span>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot-top">
+      <div>
+        <a href="#top" class="brand"><svg class="drop" viewBox="0 0 200 244"><use href="#gotinha"/></svg> Doce&nbsp;Cuidado</a>
+        <p class="tag">Um caderno inteligente que acolhe famílias de crianças com diabetes — com calma nos dias normais e direção firme no pânico.</p>
+      </div>
+      <div class="foot-links">
+        <div class="foot-col">
+          <h4>Produto</h4>
+          <a href="#recursos">Recursos</a>
+          <a href="#como">Como funciona</a>
+          <a href="#baixar">Baixar (Android)</a>
+        </div>
+        <div class="foot-col">
+          <h4>Projeto</h4>
+          <a href="#sobre">Sobre</a>
+          <a href="#desafio">Desafio CI-IA</a>
+          <a href="#time">Time</a>
+        </div>
+        <div class="foot-col">
+          <h4>Legal</h4>
+          <a href="/privacidade/">Privacidade (LGPD)</a>
+          <a href="#sobre">Não é dispositivo médico</a>
+        </div>
+      </div>
+    </div>
+    <p class="disclaimer">O Doce Cuidado é um aplicativo da categoria Saúde &amp; Bem-estar e <strong>não é um dispositivo médico</strong>: não diagnostica, não prescreve e não substitui a orientação de profissionais de saúde. Em caso de emergência, procure atendimento médico. Recursos de inteligência artificial são opcionais (opt-in) e processam apenas o primeiro nome da criança.</p>
+    <div class="foot-bottom">
+      <span>© 2026 Doce Cuidado · Projeto CI-IA Saúde / UFMG · IFMG</span>
+      <span>Feito com cuidado em Minas Gerais 💧</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ===================== MOTION (vanilla, native scroll) ===================== -->
+<script>
+(function(){
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+
+  /* mark JS so reveals can hide initial state (no-JS keeps content visible) */
+  if(!reduce) root.classList.add("motion");
+
+  /* ---- nav scrolled state + mobile sheet ---- */
+  var nav = document.getElementById("nav");
+  function onScroll(){ nav.classList.toggle("scrolled", window.scrollY > 24); }
+  onScroll(); window.addEventListener("scroll", onScroll, {passive:true});
+
+  var sheet = document.getElementById("sheet"), menuBtn = document.getElementById("menuBtn");
+  function setSheet(open){ sheet.classList.toggle("open", open); menuBtn.setAttribute("aria-expanded", open); }
+  menuBtn.addEventListener("click", function(){ setSheet(!sheet.classList.contains("open")); });
+  sheet.addEventListener("click", function(e){ if(e.target.closest("[data-close]")) setSheet(false); });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") setSheet(false); });
+
+  /* ---- anchor links (native scroll, no smooth-scroll hijacking) ---- */
+  document.querySelectorAll('a[href^="#"]').forEach(function(a){
+    a.addEventListener("click", function(e){
+      var id = a.getAttribute("href");
+      if(!id || id.length < 2) return;
+      var target = document.querySelector(id);
+      if(!target) return;
+      e.preventDefault();
+      target.scrollIntoView({behavior: reduce ? "auto" : "smooth", block: "start"});
+      setSheet(false);
+    });
+  });
+
+  /* ---- reveal: IntersectionObserver + safety timeout so nothing ships blank ---- */
+  var reveals = Array.prototype.slice.call(document.querySelectorAll("[data-reveal]"));
+  function showAll(){ reveals.forEach(function(el){ el.classList.add("in"); }); }
+  if(reduce || !("IntersectionObserver" in window)){
+    showAll();
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); } });
+    }, {rootMargin:"0px 0px -8% 0px", threshold:0.08});
+    reveals.forEach(function(el){ io.observe(el); });
+    setTimeout(showAll, 1600);
+  }
+
+  /* pointer-reactive hero glow on the phone (desktop, fine pointers only) */
+  if(window.matchMedia("(pointer:fine)").matches && !reduce){
+    var stage = document.querySelector(".stage");
+    if(stage){
+      stage.addEventListener("mousemove", function(e){
+        var r = stage.getBoundingClientRect();
+        var dx = (e.clientX - r.left - r.width/2) / r.width;
+        var dy = (e.clientY - r.top - r.height/2) / r.height;
+        var ph = document.getElementById("phone");
+        if(ph) ph.style.transform = "perspective(1000px) rotateX(" + (dy*-4).toFixed(2) + "deg) rotateY(" + (dx*5).toFixed(2) + "deg)";
+      }, {passive:true});
+      stage.addEventListener("mouseleave", function(){
+        var ph = document.getElementById("phone");
+        if(ph) ph.style.transform = "";
+      });
+    }
+  }
+
+  /* ---- APK download: browser-specific guide, then download ---- */
+  var APK_URL = "/downloads/Doce-Cuidado.apk";
+  var dlModal = document.getElementById("dlModal");
+  var dlConfirm = document.getElementById("dlConfirm");
+  var dlScrollY = 0;
+
+  function lockPageScroll(){
+    dlScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    document.body.classList.add("dl-open");
+    document.body.style.top = "-" + dlScrollY + "px";
+  }
+
+  function unlockPageScroll(){
+    document.body.classList.remove("dl-open");
+    document.body.style.top = "";
+    window.scrollTo(0, dlScrollY);
+  }
+
+  function detectDownloadProfile(){
+    var ua = navigator.userAgent || "";
+    var isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    var isAndroid = /Android/i.test(ua);
+    if(/SamsungBrowser/i.test(ua)) return isAndroid ? "samsung-android" : "samsung-desktop";
+    if(/EdgA|Edg\//i.test(ua)) return isAndroid ? "edge-android" : "edge-desktop";
+    if(/Firefox|FxiOS/i.test(ua)) return isAndroid ? "firefox-android" : (isIOS ? "firefox-ios" : "firefox-desktop");
+    if(/CriOS/i.test(ua)) return "chrome-ios";
+    if(/Chrome/i.test(ua) && !/Edg|OPR|SamsungBrowser/i.test(ua)) return isAndroid ? "chrome-android" : "chrome-desktop";
+    if(/OPR|Opera/i.test(ua)) return isAndroid ? "opera-android" : "opera-desktop";
+    if(/Safari/i.test(ua) && !/Chrome|CriOS|Edg|OPR/i.test(ua)) return isIOS ? "safari-ios" : "safari-desktop";
+    if(isIOS) return "safari-ios";
+    if(isAndroid) return "chrome-android";
+    return "generic-desktop";
+  }
+
+  var DL_PROFILES = {
+    "chrome-android": {
+      badge: "Google Chrome · Android",
+      title: "Antes de baixar — o Chrome vai avisar, e tudo bem",
+      quotes: [
+        { lab: "O Chrome costuma mostrar", txt: "O arquivo pode ser nocivo", sub: "Deseja baixar \"Doce-Cuidado.apk\"? Toque em Baixar mesmo assim." },
+        { lab: "Na instalação", txt: "Por segurança, seu telefone não permite instalar apps desconhecidos desta fonte", sub: "Permita instalar apps deste navegador em Configurações e volte ao arquivo." }
+      ],
+      steps: [
+        "Toque em <strong>Entendi — baixar agora</strong>.",
+        "No aviso do Chrome, escolha <strong>Baixar mesmo assim</strong>.",
+        "Aguarde ~103 MB terminar. Abra o APK em Downloads e instale."
+      ],
+      note: "Se a instalação disser \"problema no arquivo\", o download provavelmente veio incompleto — baixe de novo e confira se o arquivo tem cerca de 103 MB.",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "chrome-desktop": {
+      badge: "Google Chrome · computador",
+      title: "No computador, o Chrome também pode avisar sobre arquivos .apk",
+      quotes: [
+        { lab: "Barra inferior do Chrome", txt: "Doce-Cuidado.apk pode ser perigoso, então o Chrome bloqueou", sub: "Toque na seta ▾ e escolha Manter ou Manter arquivo perigoso." },
+        { lab: "Alternativa (janela)", txt: "Este tipo de arquivo pode danificar seu computador. Deseja manter Doce-Cuidado.apk mesmo assim?", sub: "Clique em Manter ou Salvar." }
+      ],
+      steps: [
+        "Baixe o APK aqui e transfira para o celular Android (WhatsApp, e-mail, cabo USB ou Google Drive).",
+        "No celular, abra o arquivo e instale normalmente."
+      ],
+      note: "APK não instala no Windows ou Mac — use o arquivo só para levar ao Android.",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "chrome-ios": {
+      badge: "Google Chrome · iPhone/iPad",
+      title: "No iPhone, o app não instala — mas você pode baixar para enviar a um Android",
+      quotes: [
+        { lab: "Limitação do iOS", txt: "Arquivos .apk são exclusivos do Android", sub: "O iPhone não consegue instalar este app. Você pode baixar o arquivo para encaminhar a quem usa Android." },
+        { lab: "Se o Chrome avisar", txt: "Este download pode ser perigoso", sub: "Toque em Baixar mesmo assim se quiser guardar o arquivo no app Arquivos." }
+      ],
+      steps: [
+        "Baixe o APK e compartilhe com um celular Android.",
+        "No Android, abra o arquivo e instale."
+      ],
+      note: "Versão para iOS está em breve. O botão iOS na página será atualizado quando lançarmos.",
+      confirm: "Baixar para compartilhar",
+      allowDownload: true
+    },
+    "safari-ios": {
+      badge: "Safari · iPhone/iPad",
+      title: "Safari no iPhone não instala apps Android (.apk)",
+      quotes: [
+        { lab: "O que acontece", txt: "Safari não pode instalar este aplicativo no iPhone", sub: "Arquivos .apk funcionam somente em Android. O download pode ir para o app Arquivos, mas não abre como app no iOS." },
+        { lab: "Se aparecer aviso", txt: "Este site está tentando baixar um arquivo", sub: "Toque em Permitir se quiser salvar o APK para enviar a um celular Android." }
+      ],
+      steps: [
+        "Use um celular ou tablet <strong>Android</strong> para instalar o Doce Cuidado.",
+        "Se precisar, baixe aqui e envie o arquivo por WhatsApp ou e-mail para o Android."
+      ],
+      note: "Estamos preparando a versão iOS. Por enquanto, o app é só para Android.",
+      confirm: "Baixar para enviar ao Android",
+      allowDownload: true
+    },
+    "safari-desktop": {
+      badge: "Safari · Mac",
+      title: "No Mac, o Safari pode perguntar antes de baixar",
+      quotes: [
+        { lab: "Diálogo do Safari", txt: "Deseja permitir o download de \"Doce-Cuidado.apk\" em docecuidado.com?", sub: "Clique em Permitir. O .apk não instala no Mac — transfira para um Android." }
+      ],
+      steps: [
+        "Baixe o arquivo e envie ao celular Android (AirDrop não instala APK; use WhatsApp, e-mail ou Drive)."
+      ],
+      note: "",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "firefox-android": {
+      badge: "Firefox · Android",
+      title: "O Firefox também usa proteção do Google Safe Browsing",
+      quotes: [
+        { lab: "Alerta do Firefox", txt: "O Firefox bloqueou um possível ataque de segurança ou privacidade", sub: "Ou: este arquivo pode conter vírus ou programas espias indesejados." },
+        { lab: "Para continuar", txt: "Abra o menu de downloads (ícone ↓) e toque em Baixar mesmo assim", sub: "Em versões recentes: Desbloquear ou Baixar arquivo." },
+        { lab: "Ao instalar", txt: "Por segurança, seu telefone não permite instalar apps desconhecidos desta fonte", sub: "Permita instalação para o Firefox em Configurações." }
+      ],
+      steps: [
+        "Confirme o download aqui, depois escolha <strong>Baixar mesmo assim</strong> no Firefox.",
+        "Abra o APK em Downloads e instale."
+      ],
+      note: "",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "firefox-desktop": {
+      badge: "Firefox · computador",
+      title: "O Firefox pode bloquear downloads incomuns",
+      quotes: [
+        { lab: "Alerta do Firefox", txt: "Doce-Cuidado.apk pode danificar seu computador. Deseja salvar o arquivo mesmo assim?", sub: "Clique em Salvar arquivo ou Permitir download." }
+      ],
+      steps: [
+        "Transfira o APK baixado para um celular Android para instalar."
+      ],
+      note: "",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "firefox-ios": {
+      badge: "Firefox · iPhone/iPad",
+      title: "No iPhone, o Firefox não instala apps Android",
+      quotes: [
+        { lab: "Limitação", txt: "Arquivos .apk não funcionam no iOS", sub: "Baixe apenas se for enviar o arquivo a um aparelho Android." }
+      ],
+      steps: [
+        "Use um celular Android para instalar o Doce Cuidado."
+      ],
+      note: "",
+      confirm: "Baixar para compartilhar",
+      allowDownload: true
+    },
+    "edge-android": {
+      badge: "Microsoft Edge · Android",
+      title: "O Edge (baseado no Chrome) mostra avisos parecidos",
+      quotes: [
+        { lab: "Alerta do Edge", txt: "O arquivo pode ser nocivo", sub: "Deseja baixar \"Doce-Cuidado.apk\"? Toque em Manter ou Baixar mesmo assim." },
+        { lab: "Ao instalar", txt: "Instalar aplicativos desconhecidos não é permitido", sub: "Permita instalação para o Edge nas configurações do Android." }
+      ],
+      steps: [
+        "Confirme aqui, depois aceite o download no Edge.",
+        "Abra o APK e toque em Instalar."
+      ],
+      note: "",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "edge-desktop": {
+      badge: "Microsoft Edge · computador",
+      title: "O Edge pode bloquear arquivos .apk no computador",
+      quotes: [
+        { lab: "Alerta do Edge", txt: "Doce-Cuidado.apk foi bloqueado", sub: "Clique em ⋯ → Manter ou Manter mesmo assim." },
+        { lab: "Alternativa", txt: "Este arquivo pode ser perigoso", sub: "Escolha Manter para salvar e transferir ao Android." }
+      ],
+      steps: [
+        "Envie o APK ao celular Android após o download."
+      ],
+      note: "",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "samsung-android": {
+      badge: "Samsung Internet · Android",
+      title: "Samsung Internet e o Android podem avisar em duas etapas",
+      quotes: [
+        { lab: "Download (navegador)", txt: "O arquivo pode ser nocivo", sub: "Mesmo aviso do Chrome — toque em Baixar mesmo assim ou Manter." },
+        { lab: "Instalação (Android 14+)", txt: "Instalar este app não é recomendado", sub: "Ou: Este app foi feito para uma versão mais antiga do Android. Toque em Instalar mesmo assim se confiar na fonte." },
+        { lab: "Galaxy com Auto Blocker", txt: "Fontes desconhecidas bloqueadas", sub: "Desative temporariamente em Configurações → Segurança → Auto Blocker, ou permita esta fonte." }
+      ],
+      steps: [
+        "Baixe o APK e abra pela pasta Downloads ou pelo ícone de download do navegador.",
+        "Em cada aviso do sistema, escolha <strong>Instalar mesmo assim</strong> ou <strong>Instalar</strong>."
+      ],
+      note: "",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "samsung-desktop": {
+      badge: "Samsung Internet",
+      title: "Transfira o APK para um celular Android",
+      quotes: [
+        { lab: "Download", txt: "O arquivo pode ser nocivo", sub: "Toque em Manter ou continuar o download." }
+      ],
+      steps: [
+        "Envie o arquivo ao Android para instalar."
+      ],
+      note: "",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "opera-android": {
+      badge: "Opera · Android",
+      title: "O Opera (Chromium) avisa em downloads de APK",
+      quotes: [
+        { lab: "Alerta", txt: "O arquivo pode ser nocivo", sub: "Deseja baixar \"Doce-Cuidado.apk\"? Toque em Baixar mesmo assim." }
+      ],
+      steps: [
+        "Abra o APK baixado e permita fontes desconhecidas se o Android pedir."
+      ],
+      note: "",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "opera-desktop": {
+      badge: "Opera · computador",
+      title: "Baixe e transfira para um Android",
+      quotes: [
+        { lab: "Alerta", txt: "Este arquivo pode ser perigoso", sub: "Clique em Manter ou Baixar mesmo assim." }
+      ],
+      steps: [
+        "Transfira o APK ao celular Android."
+      ],
+      note: "",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    },
+    "generic-desktop": {
+      badge: "Seu navegador",
+      title: "Seu navegador pode avisar antes de baixar um .apk",
+      quotes: [
+        { lab: "Aviso comum", txt: "Este arquivo pode ser perigoso ou nocivo", sub: "Escolha Manter, Baixar mesmo assim ou Permitir — o aviso é automático para apps fora da loja oficial." }
+      ],
+      steps: [
+        "Confirme o download aqui e aceite o aviso do navegador.",
+        "No Android, abra o arquivo e instale. No computador, transfira o APK ao celular."
+      ],
+      note: "",
+      confirm: "Entendi — baixar agora",
+      allowDownload: true
+    }
+  };
+
+  var DL_SAFE_HTML = "<strong>É 100% seguro.</strong> O Doce Cuidado é um app open-source criado por estudantes do IFMG para o desafio CI-IA Saúde (UFMG). Não contém vírus, malware, spyware nem código malicioso. O aviso do navegador aparece para <em>qualquer</em> app baixado fora da Google Play — é proteção automática, não um diagnóstico de perigo.";
+
+  function openDlModal(){
+    var key = detectDownloadProfile();
+    var p = DL_PROFILES[key] || DL_PROFILES["generic-desktop"];
+    document.getElementById("dlBrowserBadge").textContent = p.badge;
+    document.getElementById("dlModalTitle").textContent = p.title;
+    document.getElementById("dlSafe").innerHTML = DL_SAFE_HTML;
+    document.getElementById("dlQuotes").innerHTML = p.quotes.map(function(q){
+      return "<div class=\"dl-quote\"><div class=\"lab\">" + q.lab + "</div><div class=\"txt\">" + q.txt + "</div>" +
+        (q.sub ? "<div class=\"sub\">" + q.sub + "</div>" : "") + "</div>";
+    }).join("");
+    document.getElementById("dlSteps").innerHTML = p.steps.map(function(s){ return "<li>" + s + "</li>"; }).join("");
+    document.getElementById("dlNote").textContent = p.note || "";
+    dlConfirm.textContent = p.confirm;
+    dlConfirm.style.display = p.allowDownload ? "" : "none";
+    lockPageScroll();
+    dlModal.classList.add("open");
+    dlModal.hidden = false;
+    dlModal.setAttribute("aria-hidden", "false");
+    dlModal.scrollTop = 0;
+    requestAnimationFrame(function(){
+      dlModal.scrollTop = 0;
+      var head = document.getElementById("dlDialogHead");
+      if(head) head.focus({preventScroll:true});
+    });
+  }
+
+  function closeDlModal(){
+    dlModal.classList.remove("open");
+    dlModal.hidden = true;
+    dlModal.setAttribute("aria-hidden", "true");
+    unlockPageScroll();
+  }
+
+  function startApkDownload(){
+    window.location.assign(APK_URL);
+  }
+
+  document.querySelectorAll("[data-dl-trigger]").forEach(function(btn){
+    btn.addEventListener("click", function(e){
+      e.preventDefault();
+      openDlModal();
+    });
+  });
+
+  dlConfirm.addEventListener("click", function(){
+    closeDlModal();
+    startApkDownload();
+  });
+
+  dlModal.querySelectorAll("[data-dl-close]").forEach(function(el){
+    el.addEventListener("click", closeDlModal);
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape" && dlModal.classList.contains("open")) closeDlModal();
+  });
+})();
+</script>
+</body>
+</html>

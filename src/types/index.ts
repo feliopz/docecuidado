@@ -246,3 +246,25 @@ export const CAREGIVER_RELATIONSHIPS: Record<string, { icon: string; label: stri
   'baba': { icon: 'person', label: 'Babá' },
   'outro': { icon: 'person', label: 'Outro' },
 };
+
+// ─── Learning content (DB-driven, editable like recipes) ────────────────────
+
+/** A lesson card. `icon_svg` is raw SVG markup rendered with currentColor. */
+export interface Lesson {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  icon_svg: string;
+  order_index: number;
+}
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correct_index: number;
+  explanation_correct: string;
+  explanation_wrong: string;
+  order_index: number;
+}

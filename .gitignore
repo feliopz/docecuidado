@@ -61,3 +61,14 @@ Apresentacao_Desafio_Alunos_03JUL2026.pdf
 
 # Deploy — contém URLs de infraestrutura reais
 website/downloads/baixar.php
+
+# Documentação interna da equipe — não versionar no repositório público
+AUDIT_REPORT.md
+DOCS_INDEX.md
+docs/*.md
+docs/ciia/
+docs/content/*.md
+docs/design/
+docs/features/
+docs/feedback/
+material/README.md

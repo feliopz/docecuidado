@@ -1,172 +1,179 @@
+<div align="center">
+
+<img src="src/assets/gotinha-mascot.png" alt="Gotinha, o mascote do Doce Cuidado" width="160" />
+
 # Doce Cuidado
 
-**Equipe Synapse** — estudantes do IFMG
-Desafio **CI-IA Saúde** (Centro de Inovação em Inteligência Artificial para a Saúde, UFMG)
+### *No dia normal, o app conversa. No pânico, o app comanda.*
 
-App-companheiro para famílias de crianças com diabetes (foco em DM1). Diário de cuidados, orientação com IA, receitas, modo crise e visão para médicos/cuidadores.
+**O app-companheiro para famílias de crianças com diabetes tipo 1.**
 
-> *"No dia normal, o app conversa. No pânico, o app comanda."*
+![React Native](https://img.shields.io/badge/React_Native-0.81-61DAFB?style=flat-square&logo=react&logoColor=white)
+![Expo](https://img.shields.io/badge/Expo_SDK-54-000020?style=flat-square&logo=expo&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?style=flat-square&logo=supabase&logoColor=white)
+![Status](https://img.shields.io/badge/status-MVP_funcional-success?style=flat-square)
 
-**Status:** MVP funcional · Supabase em produção · build Android (EAS) em andamento  
-**Repositório:** https://github.com/feliopz/docecuidado  
----
+Desafio **CI-IA Saúde** · Centro de Inovação em IA para a Saúde — **UFMG**
+Equipe **Synapse**
 
-## O que já está pronto
-
-| Área | Status |
-|------|--------|
-| Onboarding (responsável, cuidador, médico) | ✅ |
-| Registro de glicemia, insulina e nutrição (câmera + IA) | ✅ |
-| Diário, gráficos, relatórios PDF | ✅ |
-| Modo crise + ligação 192 | ✅ |
-| Aprender (lições + quiz) | ✅ |
-| Receitas (50 no Supabase + recomendação por IA) | ✅ |
-| Multi-criança, convites, visão médico | ✅ |
-| Auth Supabase + migração local → nuvem | ✅ |
-| Notificações locais (lembretes de glicemia) | ✅ |
-| Assets (Gotinha) + ícones Android/iOS | ✅ |
-| Schema SQL + seeds documentados | ✅ |
-
-**Antes da Play Store:** verificação da conta Google Play, política de privacidade (URL), testes no APK/AAB real, disclaimers finais de compliance.
+</div>
 
 ---
 
-## Stack
+## 🩸 O problema
 
-- **App:** React Native 0.81 + Expo SDK 54 + Expo Router 6 + TypeScript
-- **Backend:** Supabase (PostgreSQL + Auth)
-- **IA:** OpenRouter (texto + visão para OCR de glicosímetro e análise de refeições)
-- **Build:** EAS (`eas.json` em `src/`)
-- **Posicionamento:** Health & Fitness (não dispositivo médico)
+Uma criança é diagnosticada com diabetes tipo 1. Em questão de dias, a família
+que nunca ouviu falar de "bolus" precisa aprender a **contar carboidratos**,
+**calcular insulina**, **medir glicemia seis vezes por dia** — e reconhecer, em
+segundos, se aquele suor frio é hipoglicemia.
+
+Não existe um dia de treinamento. Existe alta hospitalar.
+
+E quando a crise chega às 3h da manhã, o pai não precisa de um app com gráficos
+bonitos. Precisa de alguém dizendo **o que fazer agora**.
 
 ---
 
-## Estrutura do repositório
+## 💡 A resposta
+
+O Doce Cuidado tem **dois modos de existir**.
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🌤️ No dia normal, ele conversa
+
+Registra, aprende junto, sugere receitas, monta o relatório para a consulta.
+Um diário que a família alimenta sem esforço — e que vira dado clínico de verdade.
+
+</td>
+<td width="50%" valign="top">
+
+### 🚨 No pânico, ele comanda
+
+Tela vermelha. Passo a passo. Sem menu, sem escolha, sem texto longo.
+**"Dê 15g de açúcar. Aguarde 15 minutos. Meça de novo."**
+Botão de ligação para o 192 sempre à mão.
+
+</td>
+</tr>
+</table>
+
+---
+
+## ✨ O que ele faz
+
+| | Funcionalidade | Detalhe |
+|:--:|---|---|
+| 📸 | **Leitura por câmera** | Aponta para o glicosímetro e a IA lê o número. Fotografa o prato e ela estima os carboidratos. |
+| 📊 | **Diário e gráficos** | Glicemia, insulina e nutrição num histórico único, com filtros e visualização de tendência. |
+| 📄 | **Relatório em PDF** | Gera o documento que o endocrinologista pede — pronto para a consulta. |
+| 🚨 | **Modo crise** | Protocolo guiado para hipo e hiperglicemia, com ligação direta para o 192. |
+| 🍽️ | **Receitas** | Catálogo com informação nutricional e recomendação por IA conforme o perfil da criança. |
+| 🎓 | **Aprender** | Lições curtas e quiz — a família aprende no ritmo dela, sem jargão médico. |
+| 👨‍👩‍👧 | **Multi-criança e multi-perfil** | Responsável, cuidador e médico. Cada um vê o que precisa ver, com convite por código. |
+| 🔔 | **Lembretes** | Notificações locais para não esquecer a próxima medição. |
+
+---
+
+## 🧠 A IA, com responsabilidade
+
+O app **não é um dispositivo médico** e não prescreve dose — essa linha foi
+desenhada desde o primeiro dia.
+
+O que a IA faz é tirar atrito do caminho:
+
+- **Visão computacional** para OCR de glicosímetro e estimativa de refeição
+- **Texto** para orientação educativa e recomendação de receitas
+- Toda saída passa por *guardrails* de conteúdo e disclaimers de compliance
+- Chamadas de LLM rodam em **Edge Function**, nunca com a chave no dispositivo
+
+---
+
+## 🏗️ Como é feito
 
 ```
-doce-cuidado/
-├── README.md
-├── DOCS_INDEX.md              # índice da documentação
-├── docs/                      # produto, arquitetura, compliance, SQL, receitas
-├── assets/                    # imagens originais (GPT) — fonte dos ícones
-├── scripts/                   # EAS build, seed de receitas
-├── tools/                     # painel HTML admin de receitas
-└── src/                       # ← app Expo (código executável)
-    ├── app/                   # rotas (expo-router)
-    ├── components/
-    ├── lib/                   # store, supabase, auth, llm, notifications
-    ├── assets/                # ícones PNG processados + marketing
-    ├── app.json
-    ├── eas.json
-    └── package.json
+┌─────────────────────────────┐
+│  App — React Native / Expo  │   Expo Router · TypeScript
+│  22 rotas, store local      │   Notificações locais
+└──────────────┬──────────────┘
+               │
+      ┌────────┴────────┐
+      ▼                 ▼
+┌───────────┐    ┌──────────────────┐
+│ Supabase  │    │  Edge Functions  │  Deno
+│ Postgres  │    │  (proxy de LLM)  │  → OpenRouter
+│ + Auth    │    │                  │     texto + visão
+└───────────┘    └──────────────────┘
 ```
 
-O código do app fica em **`src/`**, não na raiz do repo.
+**Stack:** React Native 0.81 · Expo SDK 54 · Expo Router 6 · TypeScript ·
+Supabase (PostgreSQL + Auth + Edge Functions) · OpenRouter · EAS Build
+
+Migração local → nuvem implementada: o app funciona offline e sincroniza quando
+a conta é criada.
 
 ---
 
-## Desenvolvimento local
-
-### Pré-requisitos
-
-- Node.js 20+ (recomendado para Expo 54)
-- npm
-
-### Setup
+## 🚀 Rodando o projeto
 
 ```bash
 git clone https://github.com/feliopz/docecuidado.git
 cd docecuidado/src
 
 npm install --legacy-peer-deps
-
-# Variáveis do app (criar src/.env.local):
-# EXPO_PUBLIC_SUPABASE_URL=
-# EXPO_PUBLIC_SUPABASE_ANON_KEY=
-# EXPO_PUBLIC_OPENROUTER_API_KEY=
-
-npm start          # Expo Go
-npm run android    # emulador / device
+npm start
 ```
 
-> **Notificações:** lembretes locais só funcionam de forma confiável em **build nativo** (APK/AAB), não no Expo Go.
+Crie `src/.env.local` com:
 
-### Variáveis de ambiente
+```env
+EXPO_PUBLIC_SUPABASE_URL=
+EXPO_PUBLIC_SUPABASE_ANON_KEY=
+EXPO_PUBLIC_OPENROUTER_API_KEY=
+```
 
-| Arquivo | Uso |
-|---------|-----|
-| `src/.env.local` | Chaves do app (Expo) — **não commitar** |
-| `.env` (raiz) | Opcional: MCP Supabase local |
-| `.env.example` | Modelo sem segredos |
+Banco: rode `docs/supabase-schema.sql` e depois `docs/supabase-recipes-seed.sql`
+no SQL Editor do Supabase.
 
----
+> **Notificações** só funcionam de forma confiável em build nativo (APK/AAB),
+> não no Expo Go.
 
-## Supabase
-
-Scripts em `docs/`:
-
-1. `docs/supabase-schema.sql` — tabelas principais
-2. `docs/supabase-recipes-seed.sql` — tabela `recipes` + receitas iniciais
-
-Gerenciar receitas depois: abrir `tools/recipes-admin.html` no navegador (usar `service_role` apenas em ambiente seguro).
-
----
-
-## Build Android (EAS)
-
-Comandos sempre a partir de **`src/`**:
+### Build Android
 
 ```bash
 cd src
-
-# login (uma vez)
-npx eas-cli login
-
-# projeto já vinculado — ID em app.json → extra.eas.projectId
-
-# APK para testar (notificações, câmera, etc.)
-npx eas-cli build --platform android --profile preview
-
-# AAB para Play Store
-npx eas-cli build --platform android --profile production
+eas build --platform android --profile preview
 ```
 
-Ou da raiz: `bash scripts/eas-build-preview.sh` (requer `EXPO_TOKEN` ou login ativo).
+---
 
-### Regenerar ícones a partir dos PNGs originais
+## 📁 Estrutura
 
-```bash
-bash src/assets/generate-assets.sh
+```
+src/                    ← o app (código executável)
+├── app/                rotas do Expo Router
+│   ├── (tabs)/         diário, dados, receitas, aprender, relatórios, perfil
+│   ├── crise.tsx       modo crise
+│   ├── glicemia.tsx    registro com OCR
+│   └── nutricao.tsx    registro com visão
+├── components/
+├── lib/                store, supabase, auth, llm, notifications
+└── assets/
+
+supabase/functions/     Edge Functions (proxy de LLM, exclusão de conta)
+docs/                   schema SQL, seeds e páginas legais
+website/ · landing/     site do produto
+scripts/                build e release do APK
 ```
 
-(Lê de `assets/` na raiz e grava em `src/assets/`.)
-
 ---
 
-## Documentação
+<div align="center">
 
-| Doc | Conteúdo |
-|-----|----------|
-| [docs/ciia/](docs/ciia/) | **Material do CI-IA**: transcrições, síntese analítica e matriz de rastreabilidade |
-| [docs/content/](docs/content/) | **Conteúdo educativo versionado**: lições, quiz e guia de linguagem |
-| [docs/AUDITORIA.md](docs/AUDITORIA.md) | Auditoria de app, site e conteúdo + backlog priorizado |
-| [material/](material/) | "Os primeiros dias" — guia autoral em PDF, publicado no site e linkado no app |
-| [docs/PRODUCT.md](docs/PRODUCT.md) | Visão, brand, Gotinha, navegação |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Stack e decisões técnicas |
-| [docs/COMPLIANCE.md](docs/COMPLIANCE.md) | LGPD, Play Store, disclaimers |
-| [docs/AI_STRATEGY.md](docs/AI_STRATEGY.md) | Uso de IA no produto |
-| [DOCS_INDEX.md](DOCS_INDEX.md) | Índice completo |
+**Equipe Synapse** — estudantes do IFMG
+Desafio CI-IA Saúde · UFMG · 2026
 
----
-
-## Papéis no app
-
-- **Responsável** — cadastra criança, registra dados, convida cuidadores/médico
-- **Cuidador** — entra com código de convite, registra e consulta
-- **Médico** — visão de pacientes, métricas e relatórios (sem editar perfil da criança)
-
----
-
-## Licença
-
-Projeto privado — uso restrito aos mantenedores.
+</div>

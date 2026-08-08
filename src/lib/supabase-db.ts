@@ -28,9 +28,9 @@ import {
 export async function upsertChild(child: Child): Promise<void> {
   try {
     // Stamp ownership with auth.uid() so RLS authorizes this and all
-    // child-linked rows. When signed out, the write is rejected and we keep
-    // the data locally (local-first); it syncs on the next sign-in.
-    const uid = await getAuthUserId();
+    // child-linked rows. ensureSession() covers the race where onboarding
+    // finishes before bootstrapSession() completes at cold start.
+    const uid = await ensureSession();
     const row = uid ? { ...child, user_id: uid } : child;
     const { error } = await supabase.from('children').upsert(row);
     if (error) throw error;

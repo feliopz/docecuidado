@@ -1,13 +1,14 @@
 # Doce Cuidado
 
+**Equipe Synapse** — estudantes do IFMG
+Desafio **CI-IA Saúde** (Centro de Inovação em Inteligência Artificial para a Saúde, UFMG)
+
 App-companheiro para famílias de crianças com diabetes (foco em DM1). Diário de cuidados, orientação com IA, receitas, modo crise e visão para médicos/cuidadores.
 
 > *"No dia normal, o app conversa. No pânico, o app comanda."*
 
 **Status:** MVP funcional · Supabase em produção · build Android (EAS) em andamento  
 **Repositório:** https://github.com/feliopz/docecuidado  
-**Expo / EAS:** projeto `21065fe7-d765-4a73-ae97-ba16669f965f` · owner `feliopzs-team`
-
 ---
 
 ## O que já está pronto
@@ -146,6 +147,10 @@ bash src/assets/generate-assets.sh
 
 | Doc | Conteúdo |
 |-----|----------|
+| [docs/ciia/](docs/ciia/) | **Material do CI-IA**: transcrições, síntese analítica e matriz de rastreabilidade |
+| [docs/content/](docs/content/) | **Conteúdo educativo versionado**: lições, quiz e guia de linguagem |
+| [docs/AUDITORIA.md](docs/AUDITORIA.md) | Auditoria de app, site e conteúdo + backlog priorizado |
+| [material/](material/) | "Os primeiros dias" — guia autoral em PDF, publicado no site e linkado no app |
 | [docs/PRODUCT.md](docs/PRODUCT.md) | Visão, brand, Gotinha, navegação |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Stack e decisões técnicas |
 | [docs/COMPLIANCE.md](docs/COMPLIANCE.md) | LGPD, Play Store, disclaimers |

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
@@ -25,6 +25,13 @@ function LessonIcon({ svg, size, color }: { svg: string; size: number; color: st
 }
 
 type Screen = 'list' | 'lesson' | 'quiz';
+
+/**
+ * Guia autoral da equipe (PDF, hospedado no site). Fica fora da tabela `lessons`
+ * de propósito: é material completo para leitura offline / compartilhamento com
+ * a escola e a família, não uma lição do app.
+ */
+const GUIA_PDF_URL = 'https://docecuidado.com/downloads/guia-primeiros-dias-synapse.pdf';
 
 export default function Aprender() {
   const insets = useSafeAreaInsets();
@@ -157,7 +164,7 @@ export default function Aprender() {
               {score === quiz.length
                 ? 'Perfeito! Você já domina os cuidados.'
                 : score >= passMark
-                  ? 'Bom! Continue práticando.'
+                  ? 'Bom! Continue praticando.'
                   : 'Sem culpa! Cada tentativa é aprendizado.'}
             </Text>
             <Button title="Repetir" onPress={startQuiz} style={{ marginTop: 16 }} />
@@ -276,6 +283,21 @@ export default function Aprender() {
               </Card>
             </TouchableOpacity>
           )}
+
+          <TouchableOpacity onPress={() => Linking.openURL(GUIA_PDF_URL)}>
+            <Card style={styles.guiaCard}>
+              <View style={styles.lessonCardRow}>
+                <Icon name='clipboard' size={28} color={colors.ia} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.lessonCardTitle}>Guia: Os primeiros dias</Text>
+                  <Text style={styles.lessonCardDesc}>
+                    Material completo em PDF, para ler com calma e compartilhar com a escola e a família.
+                  </Text>
+                </View>
+                <Icon name='book' size={20} color={colors.ia} />
+              </View>
+            </Card>
+          </TouchableOpacity>
         </>
       )}
     </ScrollView>
@@ -310,6 +332,7 @@ const styles = StyleSheet.create({
   tagText: { fontSize: 12, fontWeight: '600', color: '#1E8449' },
   lessonCard: { borderLeftWidth: 4, borderLeftColor: colors.sky2, marginBottom: 4 },
   lessonCardDone: { borderLeftColor: colors.green },
+  guiaCard: { borderLeftWidth: 4, borderLeftColor: colors.ia, marginBottom: 4 },
   lessonCardRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   lessonCardTitle: { fontSize: 15, fontWeight: '700', color: colors.text, marginBottom: 4 },
   lessonCardDesc: { fontSize: 13, color: colors.text2, lineHeight: 19 },

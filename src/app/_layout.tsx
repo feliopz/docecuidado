@@ -9,13 +9,16 @@ import {
   addNotificationResponseListener,
 } from '../lib/notifications';
 import { flushLogs, logEvent } from '../lib/log';
+import { bootstrapSession } from '../lib/auth';
 
 export default function RootLayout() {
   useEffect(() => {
     ensureNotificationChannel();
     refreshRemindersIfEnabled();
     logEvent('app.open', { area: 'app' });
-    flushLogs(); // drain any logs buffered while offline last session
+    // Guarantee an (anonymous) session so AI, logs and cloud sync work from the
+    // very first launch — then drain any logs buffered while offline last session.
+    bootstrapSession().finally(() => flushLogs());
     const sub = addNotificationResponseListener(screen => {
       router.push(screen as '/glicemia');
     });

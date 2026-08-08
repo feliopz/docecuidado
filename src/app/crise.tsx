@@ -147,7 +147,7 @@ function analyzeSymptoms(symptoms: Symptoms) {
   if (symptoms.breathing === 'rápida' || symptoms.breathing === 'ofegante') {
     return {
       severe: true,
-      text: 'Os sintomas sugerem uma possível cetoacidose diabética.\n\nLIGUE 192 AGORA\n\nInforme que é criança com diabetes. Mantenhá a criança calma.',
+      text: 'Os sintomas sugerem uma possível cetoacidose diabética.\n\nLIGUE 192 AGORA\n\nInforme que é criança com diabetes. Mantenha a criança calma e não ofereça insulina por conta própria.',
       warning: null,
     };
   }
@@ -155,8 +155,8 @@ function analyzeSymptoms(symptoms: Symptoms) {
   if (symptoms.color === 'pálida' && (symptoms.sweating === 'suor_frio' || symptoms.sweating === 'muito_suor')) {
     return {
       severe: true,
-      text: 'Os sintomas descritos sugerem uma possível hipoglicemia.\n\nSe a criança estiver consciente, oferea 15g de carboidrato rápido (meio copo de suco de laranja ou 1 colher de mel).\n\nMeça a glicose novamente em 15 minutos.',
-      warning: 'Se ela estiver sonolenta, confusa ou não conseguir engolir: NAO dê nada pela boca. Ligue para a emergência imediatamente.',
+      text: 'Os sintomas descritos sugerem uma possível hipoglicemia.\n\nSe a criança estiver consciente e conseguindo engolir, ofereça 15g de carboidrato rápido (meio copo de suco de laranja, 1 colher de sopa de açúcar dissolvido em água ou 1 colher de mel).\n\nEspere 15 minutos e meça a glicose de novo. Se continuar baixa, repita.',
+      warning: 'Se ela estiver sonolenta, confusa, desacordada ou não conseguir engolir: NÃO dê nada pela boca — há risco de engasgo. Ligue 192 imediatamente.',
     };
   }
 

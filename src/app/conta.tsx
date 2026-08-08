@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,8 @@ import {
   getAccountType,
   getAccountName,
   setAccountName,
+  getAIConsent,
+  setAIConsent,
   clearAll,
 } from '../lib/store';
 import { logError } from '../lib/log';
@@ -33,15 +36,22 @@ export default function Conta() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [aiConsent, setAiConsentState] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const [t, n, auth] = await Promise.all([getAccountType(), getAccountName(), isAuthenticated()]);
+      const [t, n, auth, ai] = await Promise.all([getAccountType(), getAccountName(), isAuthenticated(), getAIConsent()]);
       setAccountType(t);
       setName(n);
       setLoggedIn(auth);
+      setAiConsentState(ai);
     })();
   }, []);
+
+  const toggleAI = async (value: boolean) => {
+    setAiConsentState(value);
+    await setAIConsent(value);
+  };
 
   const saveName = async () => {
     await setAccountName(name.trim());
@@ -176,6 +186,28 @@ export default function Conta() {
         )}
       </Card>
 
+      {/* AI consent */}
+      <Card>
+        <View style={styles.aiHeader}>
+          <View style={styles.sectionRow}>
+            <Icon name="sparkles" size={16} color={colors.ia} />
+            <Text style={styles.sectionTitle}>Análise com IA</Text>
+          </View>
+          <Switch
+            value={aiConsent}
+            onValueChange={toggleAI}
+            trackColor={{ false: colors.border, true: colors.mint2 }}
+            thumbColor={aiConsent ? colors.green : '#f4f3f4'}
+          />
+        </View>
+        <Text style={styles.muted}>
+          Permite usar a inteligência artificial para ler o glicosímetro por foto, estimar
+          carboidratos de refeições e gerar dicas. Apenas o <Text style={{ fontWeight: '700' }}>primeiro nome</Text> da
+          criança é enviado, nunca dados sensíveis. Você pode desativar quando quiser.
+          {' '}Sem isso, esses recursos de IA ficam desligados.
+        </Text>
+      </Card>
+
       {/* Session / danger zone */}
       <Card>
         <View style={styles.sectionRow}>
@@ -218,6 +250,7 @@ const styles = StyleSheet.create({
   backBtn: { padding: 4 },
   title: { fontSize: 16, fontWeight: '700', color: colors.text },
   sectionRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
+  aiHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.text },
   badge: {
     flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start',

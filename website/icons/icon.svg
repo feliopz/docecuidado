@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1024" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFF5EE"/>
+      <stop offset="100%" stop-color="#FDE8D0"/>
+    </linearGradient>
+    <linearGradient id="drop" x1="512" y1="180" x2="512" y2="780" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#A9CCE3"/>
+      <stop offset="35%" stop-color="#A8D8B9"/>
+      <stop offset="100%" stop-color="#F5C9A0"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="400" y1="280" x2="520" y2="500" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#F5C9A0" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+  <!-- decorative bubbles -->
+  <circle cx="180" cy="220" r="28" fill="#D6EAF8" opacity="0.7"/>
+  <circle cx="840" cy="300" r="20" fill="#D4EDDA" opacity="0.8"/>
+  <circle cx="790" cy="760" r="36" fill="#FADBD8" opacity="0.6"/>
+  <!-- Gotinha do Cuidado -->
+  <g filter="url(#soft)">
+    <path d="M512 190 C512 190 310 430 310 590 C310 720 398 810 512 810 C626 810 714 720 714 590 C714 430 512 190 512 190Z" fill="url(#drop)"/>
+    <ellipse cx="430" cy="420" rx="70" ry="110" fill="url(#shine)"/>
+  </g>
+  <!-- face -->
+  <circle cx="440" cy="560" r="18" fill="#2C3E50"/>
+  <circle cx="584" cy="560" r="18" fill="#2C3E50"/>
+  <circle cx="446" cy="552" r="6" fill="#FFFFFF"/>
+  <circle cx="590" cy="552" r="6" fill="#FFFFFF"/>
+  <path d="M462 630 Q512 680 562 630" stroke="#2C3E50" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <!-- blush -->
+  <ellipse cx="390" cy="610" rx="34" ry="20" fill="#F1948A" opacity="0.45"/>
+  <ellipse cx="634" cy="610" rx="34" ry="20" fill="#F1948A" opacity="0.45"/>
+  <!-- tiny heart accent -->
+  <path d="M512 300 C512 300 490 270 468 288 C446 306 468 334 512 360 C556 334 578 306 556 288 C534 270 512 300 512 300Z" fill="#E74C3C" opacity="0.85"/>
+</svg>

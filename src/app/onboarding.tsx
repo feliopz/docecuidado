@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -66,6 +66,11 @@ export default function Onboarding() {
   const insets = useSafeAreaInsets();
   const [flow, setFlow] = useState<Flow>('choose');
   const [step, setStep] = useState(0);
+  // Stable child id for the whole onboarding: prevents a second "Criança" being
+  // created if finishAsParent runs more than once (double tap / notification
+  // dialog re-entry). Combined with the `finishingRef` guard below.
+  const childIdRef = useRef(genId());
+  const finishingRef = useRef(false);
 
   // Parent flow state
   const [childName, setChildName] = useState('');
@@ -93,31 +98,37 @@ export default function Onboarding() {
   };
 
   const finishAsParent = async (enableNotifications = false) => {
-    const child = {
-      id: genId(),
-      name: childName.trim() || 'Criança',
-      diagnosis,
-      insulin_types: insulinTypes.length > 0 ? insulinTypes : ['rápida' as InsulinType],
-      glucose_target_min: targetMin,
-      glucose_target_max: targetMax,
-      gender: gender ?? undefined,
-    };
-    const relLabel = CAREGIVER_RELATIONSHIPS[caregiverRole]?.label ?? 'Responsável';
-    await setAccountType('responsavel');
-    await setAccountName(relLabel);
-    await setAIConsent(aiConsent);
-    await upsertChild(child);
-    if (caregiverRole) await saveCaregiverRole(caregiverRole);
-    const accId = await getAccountId();
-    await ensureResponsibleCaregiver(child.id, accId, relLabel);
-    await setOnboarded(true);
+    if (finishingRef.current) return; // guard against double submit
+    finishingRef.current = true;
+    try {
+      const child = {
+        id: childIdRef.current,
+        name: childName.trim() || 'Criança',
+        diagnosis,
+        insulin_types: insulinTypes.length > 0 ? insulinTypes : ['rápida' as InsulinType],
+        glucose_target_min: targetMin,
+        glucose_target_max: targetMax,
+        gender: gender ?? undefined,
+      };
+      const relLabel = CAREGIVER_RELATIONSHIPS[caregiverRole]?.label ?? 'Responsável';
+      await setAccountType('responsavel');
+      await setAccountName(relLabel);
+      await setAIConsent(aiConsent);
+      await upsertChild(child);
+      if (caregiverRole) await saveCaregiverRole(caregiverRole);
+      const accId = await getAccountId();
+      await ensureResponsibleCaregiver(child.id, accId, relLabel);
+      await setOnboarded(true);
 
-    if (enableNotifications) {
-      const granted = await requestNotificationPermission();
-      if (!granted) await setNotificationsEnabled(false);
+      if (enableNotifications) {
+        const granted = await requestNotificationPermission();
+        if (!granted) await setNotificationsEnabled(false);
+      }
+
+      router.replace('/(tabs)');
+    } finally {
+      finishingRef.current = false;
     }
-
-    router.replace('/(tabs)');
   };
 
   const finishAsCaregiver = async () => {

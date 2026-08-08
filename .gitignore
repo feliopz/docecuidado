@@ -43,6 +43,7 @@ secrets.json
 credentials.json
 .mcp.json
 .mcp.json.example
+scripts/.ftp.env
 
 # Legacy / local debug
 src-old/
@@ -52,3 +53,11 @@ debug/
 npm-debug.log
 yarn-error.log
 pnpm-debug.log
+
+# Material de terceiros — não redistribuir no repositório público
+docs/ciia/transcricoes/
+docs/SBEMSP_Ebook_Diabetes_Montado_Ok_compressed.pdf
+Apresentacao_Desafio_Alunos_03JUL2026.pdf
+
+# Deploy — contém URLs de infraestrutura reais
+website/downloads/baixar.php

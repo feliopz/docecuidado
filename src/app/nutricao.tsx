@@ -56,6 +56,8 @@ export default function Nutricao() {
           setAiNotice('Você está sem internet. Conecte-se ao Wi-Fi ou dados móveis para analisar o prato com a IA — ou descreva a refeição manualmente.');
         } else if (result.status === 'failed') {
           setAiNotice('Não consegui analisar a foto com a IA agora. Tente de novo em instantes ou descreva a refeição manualmente.');
+        } else if (result.status === 'no_consent') {
+          setAiNotice('A análise por IA está desativada. Ative em Perfil → Conta e privacidade para analisar o prato por foto.');
         }
         if (!cancelled) setStep('input');
       } catch {

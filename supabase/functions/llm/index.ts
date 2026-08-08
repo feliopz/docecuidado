@@ -50,7 +50,9 @@ function json(obj: unknown, status = 200): Response {
   });
 }
 
-const TIMEOUT_MS = 25_000;
+// Per-provider cap. Kept tight so the full fallback chain (vision: 3 providers)
+// stays well under the client-side ceiling and never appears to "hang".
+const TIMEOUT_MS = 14_000;
 
 async function fetchJson(url: string, init: RequestInit): Promise<{ ok: boolean; status: number; data: any }> {
   const ctrl = new AbortController();

@@ -1,7 +1,23 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { supabase } from './supabase';
+import { supabase, ensureSession } from './supabase';
 import { logError, logEvent } from './log';
 import { MealSlot, RecipeCategory } from '../types';
+
+// Hard client-side ceilings so a slow/unreachable edge never hangs the UI for
+// minutes. The edge tries providers in a chain (each capped server-side), so the
+// vision budget is larger than text.
+const TEXT_TIMEOUT_MS = 35000;
+const VISION_TIMEOUT_MS = 55000;
+
+function withTimeout<T>(p: PromiseLike<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error('client_timeout')), ms);
+    Promise.resolve(p).then(
+      (v) => { clearTimeout(t); resolve(v); },
+      (e) => { clearTimeout(t); reject(e); },
+    );
+  });
+}
 
 // All LLM traffic goes through the `llm` Supabase Edge Function (verify_jwt),
 // which holds the OpenRouter key server-side. The key is NEVER in the client
@@ -105,15 +121,23 @@ export function getFallbackMessage(): string {
 
 async function callTextLLM(systemPrompt: string, userPrompt: string, maxTokens = 180): Promise<string | null> {
   if (!(await hasAIConsent())) return null;
+  await ensureSession(); // the edge function requires a real (incl. anonymous) user
   try {
-    const { data, error } = await supabase.functions.invoke('llm', {
-      body: { mode: 'text', system: systemPrompt, user: userPrompt, maxTokens },
-    });
+    const { data, error } = await withTimeout(
+      supabase.functions.invoke('llm', {
+        body: { mode: 'text', system: systemPrompt, user: userPrompt, maxTokens },
+      }),
+      TEXT_TIMEOUT_MS,
+    );
     if (error) { logError('callTextLLM', error); return null; }
     const text = (data as { content?: string } | null)?.content;
     return text && text.length > 0 ? text : null;
   } catch (e) {
-    logError('callTextLLM', e);
+    if (e instanceof Error && e.message === 'client_timeout') {
+      void logEvent('ai.text', { level: 'warn', area: 'llm', detail: 'client_timeout', ok: false });
+    } else {
+      logError('callTextLLM', e);
+    }
     return null;
   }
 }
@@ -154,10 +178,14 @@ async function callVisionLLM(
   maxTokens = 60,
 ): Promise<VisionCall> {
   if (!(await hasAIConsent())) return { content: null, reason: 'no_consent' };
+  await ensureSession(); // the edge function requires a real (incl. anonymous) user
   try {
-    const { data, error } = await supabase.functions.invoke('llm', {
-      body: { mode: 'vision', prompt, imageBase64, maxTokens, mimeType: 'image/jpeg' },
-    });
+    const { data, error } = await withTimeout(
+      supabase.functions.invoke('llm', {
+        body: { mode: 'vision', prompt, imageBase64, maxTokens, mimeType: 'image/jpeg' },
+      }),
+      VISION_TIMEOUT_MS,
+    );
     if (error) {
       if (isNetworkError(error)) {
         void logEvent('ai.vision', { level: 'warn', area: 'llm', detail: 'offline', ok: false });
@@ -176,6 +204,10 @@ async function callVisionLLM(
       void logEvent('ai.vision', { level: 'warn', area: 'llm', detail: 'offline', ok: false });
       return { content: null, reason: 'offline' };
     }
+    if (e instanceof Error && e.message === 'client_timeout') {
+      void logEvent('ai.vision', { level: 'warn', area: 'llm', detail: 'client_timeout', ok: false });
+      return { content: null, reason: 'failed' };
+    }
     logError('callVisionLLM', e);
     return { content: null, reason: 'failed' };
   }
@@ -189,8 +221,8 @@ Você ajuda famílias que cuidam de crianças com Diabetes Tipo 1.
 REGRAS ABSOLUTAS:
 - Responda SEMPRE em português brasileiro
 - Seja calorosa e acolhedora, nunca clínica ou fria
-- NUNCA sugira doses de insulina ou mudanças de médicação
-- NUNCA diagnostique ou interprete resultados clínicamente
+- NUNCA sugira doses de insulina ou mudanças de medicação
+- NUNCA diagnostique ou interprete resultados clinicamente
 - Redirecione sempre: "converse com o médico" quando houver dúvida
 - Não use emojis
 - Seja OBJETIVA e COMPLETA: termine a ideia dentro dos tokens disponíveis
@@ -303,7 +335,7 @@ export async function generateDoctorReport(
   const periodLabel = period === 'week' ? 'última semana' : period === 'month' ? 'último mês' : 'todo o período';
 
   const text = await callTextLLM(
-    `${SYSTEM_BASE}\nGere um RELATÓRIO organizado para o médico. Sem emojis. Formato limpo. Nunca interprete clínicamente. Apenas descreva os dados.`,
+    `${SYSTEM_BASE}\nGere um RELATÓRIO organizado para o médico. Sem emojis. Formato limpo. Nunca interprete clinicamente. Apenas descreva os dados.`,
     `Relatório de ${firstNameOnly(childName)} — ${periodLabel}.
 Estatísticas: Média ${stats.avg} mg/dL, Pico ${stats.peak}, Mínima ${stats.low}, Na meta ${stats.inTargetPct}% (${stats.targetMin}-${stats.targetMax} mg/dL).
 Glicemias (${glucoseData.length}): ${glucoseData.slice(0, 10).map(r => `${r.value}mg/dL ${r.moment}`).join('; ')}.
@@ -368,7 +400,7 @@ export interface MealPhotoResult {
 export async function analyzeMealPhoto(imageBase64: string): Promise<MealPhotoResult> {
   const prompt = `Look at this photo of a meal or food.
 Return ONLY valid JSON in this exact format:
-{"description": "arroz, feijão e frango grelhádo", "estimated_carbs_g": 45, "foods_identified": ["arroz", "feijão", "frango"]}
+{"description": "arroz, feijão e frango grelhado", "estimated_carbs_g": 45, "foods_identified": ["arroz", "feijão", "frango"]}
 - description: brief description in Portuguese
 - estimated_carbs_g: estimated total carbohydrates in grams (integer), or null if impossible to estimate
 - foods_identified: array of food items identified

@@ -5,78 +5,171 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Doce Cuidado — Monitor de Logs</title>
 <style>
-  :root { --red:#E74C3C; --green:#27AE60; --yellow:#F39C12; --ia:#9B59B6; --sky:#2980B9;
-          --bg:#F5F7FA; --card:#fff; --text:#2C3E50; --muted:#7F8C8D; --border:#E4E8EC; }
+  :root {
+    --red:#E74C3C; --red-bg:#FDF3F2; --green:#27AE60; --green-bg:#EAFAF1;
+    --yellow:#F39C12; --yellow-bg:#FEF9EC; --ia:#9B59B6; --ia-bg:#F4ECF7;
+    --sky:#2980B9; --sky-bg:#EAF2F8;
+    --bg:#F0F3F7; --card:#fff; --text:#2C3E50; --muted:#7F8C8D; --border:#E4E8EC;
+    --header-h:52px; --radius:12px;
+  }
   * { box-sizing:border-box; }
-  body { margin:0; font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); }
-  header { background:var(--text); color:#fff; padding:14px 20px; position:sticky; top:0; z-index:10; box-shadow:0 2px 12px rgba(0,0,0,.12); }
-  h1 { font-size:17px; margin:0; display:flex; align-items:center; gap:8px; }
-  .wrap { max-width:1180px; margin:0 auto; padding:18px 20px 60px; }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); line-height:1.45; }
+
+  /* ── Header ── */
+  header {
+    background:linear-gradient(135deg,#2C3E50 0%,#34495E 100%);
+    color:#fff; padding:0 20px; height:var(--header-h);
+    position:sticky; top:0; z-index:20;
+    box-shadow:0 2px 16px rgba(0,0,0,.15);
+    display:flex; align-items:center;
+  }
+  header .inner { max-width:1200px; margin:0 auto; width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  h1 { font-size:16px; margin:0; font-weight:700; display:flex; align-items:center; gap:8px; }
+  h1 .tag { font-size:11px; font-weight:500; color:rgba(255,255,255,.55); background:rgba(255,255,255,.08); padding:2px 8px; border-radius:20px; }
+
+  .wrap { max-width:1200px; margin:0 auto; padding:20px 20px 48px; }
+
+  /* ── Cards ── */
+  .card { background:var(--card); border-radius:var(--radius); box-shadow:0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04); margin-bottom:16px; overflow:hidden; }
+  .card-head { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .card-head b { font-size:14px; }
+  .card-body { padding:16px 18px; }
+
   .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  input, select, button { font:inherit; padding:8px 11px; border:1.5px solid var(--border); border-radius:8px; background:#fff; color:var(--text); }
-  button { background:var(--text); color:#fff; border:none; cursor:pointer; font-weight:600; }
+
+  input, select, button {
+    font:inherit; padding:9px 12px; border:1.5px solid var(--border); border-radius:8px;
+    background:#fff; color:var(--text); transition:border-color .15s, box-shadow .15s;
+  }
+  input:focus, select:focus { outline:none; border-color:var(--sky); box-shadow:0 0 0 3px rgba(41,128,185,.12); }
+  button { background:var(--text); color:#fff; border:none; cursor:pointer; font-weight:600; padding:9px 16px; }
+  button:hover:not(:disabled) { filter:brightness(1.08); }
   button.ghost { background:#fff; color:var(--text); border:1.5px solid var(--border); }
   button:disabled { opacity:.5; cursor:not-allowed; }
   .muted { color:var(--muted); font-size:13px; }
-  .conn-card, .panel { padding:16px; background:var(--card); border-radius:12px; box-shadow:0 2px 10px rgba(0,0,0,.05); margin-bottom:16px; }
-  .warnbox { background:#FDEDEC; border:1px solid #F5B7B1; border-radius:8px; padding:9px 12px; font-size:12.5px; line-height:1.5; margin-top:10px; color:#922B21; }
+  .warnbox { background:#FDEDEC; border:1px solid #F5B7B1; border-radius:8px; padding:10px 14px; font-size:12.5px; line-height:1.55; margin-top:12px; color:#922B21; }
 
-  .health { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
-  .hcard { border:1.5px solid var(--border); border-radius:11px; padding:12px 14px; }
-  .hcard .name { font-weight:700; font-size:13px; text-transform:capitalize; display:flex; align-items:center; gap:7px; }
-  .dot { width:9px; height:9px; border-radius:50%; flex:none; }
-  .hcard .big { font-size:22px; font-weight:800; margin:6px 0 2px; }
+  /* ── Health cards ── */
+  .health { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; padding:16px 18px; }
+  .hcard {
+    border:1.5px solid var(--border); border-radius:10px; padding:14px 16px;
+    transition:box-shadow .15s, transform .15s;
+  }
+  .hcard:hover { box-shadow:0 4px 12px rgba(0,0,0,.07); transform:translateY(-1px); }
+  .hcard .name { font-weight:700; font-size:13px; text-transform:capitalize; display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+  .dot { width:10px; height:10px; border-radius:50%; flex:none; }
+  .hcard .big { font-size:26px; font-weight:800; margin:4px 0 2px; letter-spacing:-.5px; }
   .hcard .sub { font-size:11.5px; color:var(--muted); }
-  .bar { height:6px; border-radius:4px; background:#eee; overflow:hidden; margin-top:8px; }
-  .bar > span { display:block; height:100%; background:var(--green); }
+  .bar { height:5px; border-radius:3px; background:#ECEFF1; overflow:hidden; margin-top:10px; }
+  .bar > span { display:block; height:100%; border-radius:3px; transition:width .4s ease; }
 
-  .filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-  .filters .grow { flex:1; min-width:160px; }
-  .switch { display:flex; align-items:center; gap:7px; font-size:13px; color:var(--muted); }
-
-  table { width:100%; border-collapse:collapse; font-size:13px; }
-  thead th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); padding:8px 10px; border-bottom:1.5px solid var(--border); position:sticky; top:54px; background:var(--card); }
-  tbody td { padding:8px 10px; border-bottom:1px solid #F0F2F4; vertical-align:top; }
-  tbody tr.err { background:#FDF3F2; }
-  tbody tr.warn { background:#FEF9EC; }
-  .badge { display:inline-block; font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:20px; text-transform:uppercase; letter-spacing:.3px; }
-  .b-info { background:#EAF2F8; color:var(--sky); }
-  .b-warn { background:#FEF5E7; color:#B9770E; }
-  .b-error{ background:#FDEDEC; color:var(--red); }
-  .b-server{ background:#F4ECF7; color:var(--ia); }
-  .b-client{ background:#EAFAF1; color:var(--green); }
-  .ev { font-family:ui-monospace,Menlo,monospace; font-size:12px; font-weight:600; }
-  .mono { font-family:ui-monospace,Menlo,monospace; font-size:11.5px; color:var(--muted); }
-  .ok-y { color:var(--green); font-weight:700; }
-  .ok-n { color:var(--red); font-weight:700; }
-  .empty { text-align:center; color:var(--muted); padding:40px; }
-  .pulse { width:8px; height:8px; border-radius:50%; background:var(--green); display:inline-block; box-shadow:0 0 0 0 rgba(39,174,96,.5); animation:pulse 1.6s infinite; }
+  /* ── Filters ── */
+  .filters { display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:14px 18px; }
+  .filters .grow { flex:1; min-width:180px; }
+  .filter-group { display:flex; flex-direction:column; gap:3px; }
+  .filter-group label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); padding-left:2px; }
+  .switch { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); cursor:pointer; user-select:none; padding:6px 10px; border-radius:8px; border:1.5px solid var(--border); background:#FAFBFC; }
+  .switch input { width:15px; height:15px; accent-color:var(--green); cursor:pointer; margin:0; padding:0; border:none; }
+  .pulse { width:8px; height:8px; border-radius:50%; background:var(--green); display:inline-block; animation:pulse 1.6s infinite; }
   @keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(39,174,96,.5)} 70%{box-shadow:0 0 0 7px rgba(39,174,96,0)} 100%{box-shadow:0 0 0 0 rgba(39,174,96,0)} }
+
+  .stats-bar { display:flex; gap:8px; flex-wrap:wrap; padding:0 18px 14px; }
+  .stat-pill { font-size:12px; font-weight:600; padding:4px 12px; border-radius:20px; display:flex; align-items:center; gap:5px; }
+  .stat-pill .n { font-weight:800; }
+  .sp-total { background:#ECEFF1; color:var(--text); }
+  .sp-error { background:var(--red-bg); color:var(--red); }
+  .sp-warn  { background:var(--yellow-bg); color:#B9770E; }
+  .sp-info  { background:var(--sky-bg); color:var(--sky); }
+
+  /* ── Table ── */
+  .table-wrap {
+    overflow:auto;
+    max-height:calc(100vh - 320px);
+    min-height:200px;
+    -webkit-overflow-scrolling:touch;
+  }
+  table { width:100%; border-collapse:separate; border-spacing:0; font-size:13px; min-width:860px; }
+  thead th {
+    text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.5px;
+    color:var(--muted); font-weight:700;
+    padding:10px 12px; background:#F8FAFB;
+    border-bottom:2px solid var(--border);
+    position:sticky; top:0; z-index:3;
+    white-space:nowrap;
+  }
+  tbody td {
+    padding:10px 12px; border-bottom:1px solid #F0F2F4;
+    vertical-align:top; line-height:1.4;
+  }
+  tbody tr { transition:background .1s; }
+  tbody tr:hover { background:#F8FAFB !important; }
+  tbody tr.err  { background:var(--red-bg); }
+  tbody tr.warn { background:var(--yellow-bg); }
+
+  .badge {
+    display:inline-block; font-size:10px; font-weight:700; padding:3px 9px;
+    border-radius:20px; text-transform:uppercase; letter-spacing:.35px; white-space:nowrap;
+  }
+  .b-info  { background:var(--sky-bg);   color:var(--sky); }
+  .b-warn  { background:var(--yellow-bg); color:#B9770E; }
+  .b-error { background:var(--red-bg);   color:var(--red); }
+  .b-server{ background:var(--ia-bg);   color:var(--ia); }
+  .b-client{ background:var(--green-bg); color:var(--green); }
+
+  .ev { font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:12px; font-weight:600; color:var(--text); }
+  .mono { font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:11.5px; color:var(--muted); white-space:nowrap; }
+  .detail-text {
+    font-family:ui-monospace,'SF Mono',Menlo,monospace; font-size:11.5px; color:#555;
+    word-break:break-word; max-width:320px; display:block; line-height:1.45;
+  }
+  .detail-text.is-error { color:var(--red); }
+  .ok-y { color:var(--green); font-weight:700; font-size:15px; }
+  .ok-n { color:var(--red);   font-weight:700; font-size:15px; }
+
+  .empty { text-align:center; color:var(--muted); padding:48px 20px; }
+  .empty-icon { font-size:32px; margin-bottom:8px; opacity:.4; }
+  .loading { text-align:center; padding:32px; color:var(--muted); font-size:13px; }
+  .loading::after { content:''; display:inline-block; width:14px; height:14px; border:2px solid var(--border); border-top-color:var(--sky); border-radius:50%; animation:spin .7s linear infinite; margin-left:8px; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  @media (max-width:640px) {
+    .wrap { padding:14px 12px 40px; }
+    .filters { flex-direction:column; align-items:stretch; }
+    .filters .grow { min-width:0; }
+    .table-wrap { max-height:calc(100vh - 380px); }
+  }
 </style>
 </head>
 <body>
-<header><div class="wrap" style="padding:0;max-width:1180px;"><h1>🩺 Doce Cuidado — Monitor de Logs <span class="muted" style="font-weight:400;color:#bcc">(uso interno)</span></h1></div></header>
+<header>
+  <div class="inner">
+    <h1>🩺 Monitor de Logs <span class="tag">uso interno</span></h1>
+    <span id="headerStatus" class="tag" style="display:none;"></span>
+  </div>
+</header>
 
 <div class="wrap">
-  <div class="conn-card">
-    <div class="muted" style="margin-bottom:10px;">
-      Cole a <b>URL do projeto</b> e a <b>service_role key</b> (Supabase → Settings → API).
-      Ficam salvas só neste navegador (localStorage).
+  <div class="card">
+    <div class="card-body">
+      <div class="muted" style="margin-bottom:12px;">
+        Cole a <b>URL do projeto</b> e a <b>service_role key</b> (Supabase → Settings → API).
+        Ficam salvas só neste navegador (localStorage).
+      </div>
+      <div class="row">
+        <input id="url" placeholder="https://xxxx.supabase.co" style="flex:2; min-width:220px;" />
+        <input id="key" type="password" placeholder="service_role key" style="flex:2; min-width:220px;" />
+        <button id="connectBtn">Conectar</button>
+        <button class="ghost" id="forgetBtn">Esquecer</button>
+      </div>
+      <div id="connStatus" class="muted" style="margin-top:10px;"></div>
+      <div class="warnbox">⚠️ A <b>service_role key</b> é secreta e dá acesso total. Use só neste computador, nunca no app.</div>
     </div>
-    <div class="row">
-      <input id="url" placeholder="https://xxxx.supabase.co" style="flex:2; min-width:240px;" />
-      <input id="key" type="password" placeholder="service_role key" style="flex:2; min-width:240px;" />
-      <button id="connectBtn">Conectar</button>
-      <button class="ghost" id="forgetBtn">Esquecer</button>
-    </div>
-    <div id="connStatus" class="muted" style="margin-top:8px;"></div>
-    <div class="warnbox">⚠️ A <b>service_role key</b> é secreta e dá acesso total. Use só neste computador, nunca no app.</div>
   </div>
 
   <div id="app" style="display:none;">
     <!-- AI provider health -->
-    <div class="panel">
-      <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+    <div class="card">
+      <div class="card-head">
         <b>Saúde das IAs <span class="muted" style="font-weight:400;">— últimas 24h</span></b>
         <span class="muted" id="healthTotal"></span>
       </div>
@@ -84,29 +177,83 @@
     </div>
 
     <!-- Filters -->
-    <div class="panel">
+    <div class="card">
       <div class="filters">
-        <input id="q" class="grow" placeholder="Buscar evento ou detalhe (ex: ai.vision, offline, http_429)" />
-        <select id="fLevel"><option value="">Todos os níveis</option><option value="error">Erros</option><option value="warn">Avisos</option><option value="info">Info</option></select>
-        <select id="fSource"><option value="">Cliente + Servidor</option><option value="client">Cliente</option><option value="server">Servidor</option></select>
-        <select id="fProvider"><option value="">Toda IA</option><option value="groq">Groq</option><option value="openrouter">OpenRouter</option><option value="cohere">Cohere</option><option value="gemini">Gemini/Gemma</option></select>
-        <select id="fWindow"><option value="1">Última 1h</option><option value="24" selected>24h</option><option value="168">7 dias</option><option value="0">Tudo</option></select>
-        <button id="refreshBtn" class="ghost">Atualizar</button>
-        <label class="switch"><input type="checkbox" id="auto" checked /> Auto <span id="liveDot" class="pulse"></span></label>
+        <div class="filter-group grow">
+          <label for="q">Buscar</label>
+          <input id="q" placeholder="Evento ou detalhe (ex: ai.vision, offline, http_429)" />
+        </div>
+        <div class="filter-group">
+          <label for="fLevel">Nível</label>
+          <select id="fLevel">
+            <option value="">Todos</option>
+            <option value="error">Erros</option>
+            <option value="warn">Avisos</option>
+            <option value="info">Info</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="fSource">Origem</label>
+          <select id="fSource">
+            <option value="">Cliente + Servidor</option>
+            <option value="client">Cliente</option>
+            <option value="server">Servidor</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="fProvider">Provider IA</label>
+          <select id="fProvider">
+            <option value="">Toda IA</option>
+            <option value="groq">Groq</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="cohere">Cohere</option>
+            <option value="gemini">Gemini/Gemma</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="fWindow">Período</label>
+          <select id="fWindow">
+            <option value="1">1h</option>
+            <option value="24" selected>24h</option>
+            <option value="168">7 dias</option>
+            <option value="0">Tudo</option>
+          </select>
+        </div>
+        <div class="filter-group" style="align-self:flex-end;">
+          <label>&nbsp;</label>
+          <button id="refreshBtn" class="ghost">↻ Atualizar</button>
+        </div>
+        <div class="filter-group" style="align-self:flex-end;">
+          <label>&nbsp;</label>
+          <label class="switch"><input type="checkbox" id="auto" checked /> Auto <span id="liveDot" class="pulse"></span></label>
+        </div>
       </div>
+      <div class="stats-bar" id="statsBar"></div>
     </div>
 
     <!-- Logs table -->
-    <div class="panel" style="padding:0; overflow:hidden;">
-      <table>
-        <thead><tr>
-          <th style="width:120px;">Quando</th><th style="width:70px;">Nível</th>
-          <th>Evento</th><th style="width:90px;">Área</th><th style="width:110px;">Provider</th>
-          <th style="width:50px;">OK</th><th>Detalhe</th><th style="width:90px;">Usuário</th><th style="width:70px;">Origem</th>
-        </tr></thead>
-        <tbody id="rows"></tbody>
-      </table>
-      <div id="empty" class="empty" style="display:none;">Nenhum log para os filtros atuais.</div>
+    <div class="card">
+      <div class="table-wrap" id="tableWrap">
+        <table>
+          <thead><tr>
+            <th style="width:110px;">Quando</th>
+            <th style="width:72px;">Nível</th>
+            <th style="width:180px;">Evento</th>
+            <th style="width:80px;">Área</th>
+            <th style="width:100px;">Provider</th>
+            <th style="width:44px;">OK</th>
+            <th>Detalhe</th>
+            <th style="width:80px;">Usuário</th>
+            <th style="width:76px;">Origem</th>
+          </tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+        <div id="loading" class="loading" style="display:none;">Carregando logs</div>
+        <div id="empty" class="empty" style="display:none;">
+          <div class="empty-icon">📋</div>
+          Nenhum log para os filtros atuais.
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -116,15 +263,44 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 
 const DEFAULT_URL = 'https://your-project.supabase.co';
 const PROVIDERS = ['groq','openrouter','cohere','gemini'];
-let sb = null, timer = null;
+let sb = null, timer = null, loading = false;
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
+/** Normalize detail — handles objects, JSON strings, PostgREST jsonb, etc. */
+function fmtDetail(detail, isError) {
+  if (detail == null || detail === '') return '<span class="muted">—</span>';
+
+  let text;
+  if (typeof detail === 'object') {
+    try { text = JSON.stringify(detail); }
+    catch { text = String(detail); }
+  } else {
+    text = String(detail);
+    if (text === '[object Object]') return '<span class="muted">—</span>';
+    if ((text.startsWith('{') || text.startsWith('[')) && text.length > 1) {
+      try { text = JSON.stringify(JSON.parse(text)); } catch {}
+    }
+  }
+
+  const cls = 'detail-text' + (isError ? ' is-error' : '');
+  const title = esc(text);
+  const display = text.length > 200 ? esc(text.slice(0, 200)) + '…' : esc(text);
+  return `<span class="${cls}" title="${title}">${display}</span>`;
+}
+
 $('url').value = localStorage.getItem('dc_admin_url') || DEFAULT_URL;
 $('key').value = localStorage.getItem('dc_admin_key') || '';
 $('connectBtn').onclick = connect;
-$('forgetBtn').onclick = () => { localStorage.removeItem('dc_admin_url'); localStorage.removeItem('dc_admin_key'); $('url').value=DEFAULT_URL; $('key').value=''; $('connStatus').textContent='Credenciais apagadas.'; };
+$('forgetBtn').onclick = () => {
+  localStorage.removeItem('dc_admin_url');
+  localStorage.removeItem('dc_admin_key');
+  $('url').value = DEFAULT_URL;
+  $('key').value = '';
+  $('connStatus').textContent = 'Credenciais apagadas.';
+  $('app').style.display = 'none';
+};
 $('refreshBtn').onclick = () => load();
 ['q','fLevel','fSource','fProvider','fWindow'].forEach(id => $(id).addEventListener('input', () => load()));
 $('auto').onchange = setupAuto;
@@ -136,31 +312,46 @@ function setupAuto(){
   if ($('auto').checked && sb) timer = setInterval(() => load(true), 4000);
 }
 
+function setLoading(on) {
+  loading = on;
+  $('loading').style.display = on ? 'block' : 'none';
+  if (on) { $('empty').style.display = 'none'; }
+}
+
 async function connect(){
   const url = $('url').value.trim(), key = $('key').value.trim();
-  if (!url || !key) { $('connStatus').textContent='Preencha URL e key.'; return; }
-  localStorage.setItem('dc_admin_url', url); localStorage.setItem('dc_admin_key', key);
+  if (!url || !key) { $('connStatus').textContent = 'Preencha URL e key.'; return; }
+  localStorage.setItem('dc_admin_url', url);
+  localStorage.setItem('dc_admin_key', key);
   sb = createClient(url, key, { auth:{ persistSession:false } });
   $('connStatus').textContent = 'Conectando...';
   const ok = await load();
-  if (ok) { $('app').style.display='block'; $('connStatus').textContent='Conectado.'; setupAuto(); }
+  if (ok) {
+    $('app').style.display = 'block';
+    $('connStatus').textContent = 'Conectado.';
+    $('headerStatus').style.display = 'inline';
+    $('headerStatus').textContent = '● conectado';
+    setupAuto();
+  }
 }
 
-function sinceISO(hours){ return new Date(Date.now() - hours*3600*1000).toISOString(); }
+function sinceISO(hours){ return new Date(Date.now() - hours * 3600 * 1000).toISOString(); }
 
 async function load(silent){
-  if (!sb) return false;
+  if (!sb || loading) return false;
+  if (!silent) setLoading(true);
   try {
     await Promise.all([loadHealth(), loadRows()]);
     return true;
   } catch (e) {
     if (!silent) $('connStatus').textContent = 'Erro: ' + (e?.message || e);
     return false;
+  } finally {
+    setLoading(false);
   }
 }
 
 async function loadHealth(){
-  // AI attempts in the last 24h (server rows carry the real provider per attempt).
   const { data, error } = await sb.from('app_logs')
     .select('provider, ok')
     .not('provider','is',null)
@@ -172,13 +363,13 @@ async function loadHealth(){
   let total = 0;
   $('health').innerHTML = PROVIDERS.map(p => {
     const s = stat[p], n = s.ok + s.fail; total += n;
-    const rate = n ? Math.round(100*s.ok/n) : null;
-    const color = n===0 ? '#bbb' : rate>=80 ? 'var(--green)' : rate>=40 ? 'var(--yellow)' : 'var(--red)';
+    const rate = n ? Math.round(100 * s.ok / n) : null;
+    const color = n === 0 ? '#BDC3C7' : rate >= 80 ? 'var(--green)' : rate >= 40 ? 'var(--yellow)' : 'var(--red)';
     return `<div class="hcard">
       <div class="name"><span class="dot" style="background:${color}"></span>${p}</div>
-      <div class="big">${rate===null?'—':rate+'%'}</div>
+      <div class="big" style="color:${n ? color : 'var(--muted)'}">${rate === null ? '—' : rate + '%'}</div>
       <div class="sub">${s.ok} ok · ${s.fail} falhas · ${n} tentativas</div>
-      <div class="bar"><span style="width:${rate||0}%;background:${color}"></span></div>
+      <div class="bar"><span style="width:${rate || 0}%;background:${color}"></span></div>
     </div>`;
   }).join('');
   $('healthTotal').textContent = total + ' tentativas de IA';
@@ -186,7 +377,8 @@ async function loadHealth(){
 
 async function loadRows(){
   let query = sb.from('app_logs').select('*').order('created_at', { ascending:false }).limit(300);
-  const w = $('fWindow').value; if (w !== '0') query = query.gte('created_at', sinceISO(Number(w)));
+  const w = $('fWindow').value;
+  if (w !== '0') query = query.gte('created_at', sinceISO(Number(w)));
   if ($('fLevel').value) query = query.eq('level', $('fLevel').value);
   if ($('fSource').value) query = query.eq('source', $('fSource').value);
   if ($('fProvider').value) query = query.eq('provider', $('fProvider').value);
@@ -199,23 +391,50 @@ async function loadRows(){
 
 function fmt(ts){
   const d = new Date(ts);
-  const today = new Date().toDateString() === d.toDateString();
-  return today ? d.toLocaleTimeString('pt-BR') : d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMin = Math.floor(diffMs / 60000);
+  let rel;
+  if (diffMin < 1) rel = 'agora';
+  else if (diffMin < 60) rel = diffMin + 'min';
+  else if (diffMin < 1440) rel = Math.floor(diffMin / 60) + 'h';
+  else rel = Math.floor(diffMin / 1440) + 'd';
+  const abs = d.toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit', second:'2-digit' });
+  return `<span class="mono" title="${esc(abs)}">${rel === 'agora' ? 'agora' : esc(rel)}</span>`;
+}
+
+function renderStats(rows) {
+  const counts = { error:0, warn:0, info:0 };
+  rows.forEach(r => { if (counts[r.level] != null) counts[r.level]++; });
+  $('statsBar').innerHTML = [
+    `<span class="stat-pill sp-total"><span class="n">${rows.length}</span> logs</span>`,
+    counts.error ? `<span class="stat-pill sp-error"><span class="n">${counts.error}</span> erros</span>` : '',
+    counts.warn  ? `<span class="stat-pill sp-warn"><span class="n">${counts.warn}</span> avisos</span>` : '',
+    counts.info  ? `<span class="stat-pill sp-info"><span class="n">${counts.info}</span> info</span>` : '',
+  ].filter(Boolean).join('');
 }
 
 function render(rows){
-  $('empty').style.display = rows.length ? 'none' : 'block';
+  renderStats(rows);
+  const hasRows = rows.length > 0;
+  $('empty').style.display = hasRows ? 'none' : 'block';
   $('rows').innerHTML = rows.map(r => {
-    const okCell = r.ok === true ? '<span class="ok-y">✓</span>' : r.ok === false ? '<span class="ok-n">✗</span>' : '<span class="muted">—</span>';
-    return `<tr class="${r.level==='error'?'err':r.level==='warn'?'warn':''}">
-      <td class="mono">${fmt(r.created_at)}</td>
+    const isErr = r.level === 'error';
+    const okCell = r.ok === true  ? '<span class="ok-y" title="Sucesso">✓</span>'
+                 : r.ok === false ? '<span class="ok-n" title="Falha">✗</span>'
+                 : '<span class="muted">—</span>';
+    const area = r.area ? esc(r.area) : '<span class="muted">—</span>';
+    const provider = r.provider ? `<b style="text-transform:capitalize;font-size:12px;">${esc(r.provider)}</b>` : '<span class="muted">—</span>';
+    const uid = r.user_id ? esc(String(r.user_id).slice(0, 8)) + '…' : '—';
+    return `<tr class="${isErr ? 'err' : r.level === 'warn' ? 'warn' : ''}">
+      <td>${fmt(r.created_at)}</td>
       <td><span class="badge b-${esc(r.level)}">${esc(r.level)}</span></td>
       <td><span class="ev">${esc(r.event)}</span></td>
-      <td class="muted">${esc(r.area||'')}</td>
-      <td>${r.provider?`<b>${esc(r.provider)}</b>`:'<span class="muted">—</span>'}</td>
-      <td>${okCell}</td>
-      <td>${esc(r.detail||'')}</td>
-      <td class="mono" title="${esc(r.user_id||'')}">${r.user_id ? esc(String(r.user_id).slice(0,8)) : '—'}</td>
+      <td class="muted" style="font-size:12px;">${area}</td>
+      <td>${provider}</td>
+      <td style="text-align:center;">${okCell}</td>
+      <td>${fmtDetail(r.detail, isErr)}</td>
+      <td class="mono" title="${esc(r.user_id || '')}">${uid}</td>
       <td><span class="badge b-${esc(r.source)}">${esc(r.source)}</span></td>
     </tr>`;
   }).join('');

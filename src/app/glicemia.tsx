@@ -55,6 +55,8 @@ export default function Glicemia() {
             setAiNotice('Você está sem internet. Conecte-se ao Wi-Fi ou dados móveis para ler o glicosímetro com a IA — ou digite o valor manualmente.');
           } else if (result.status === 'failed') {
             setAiNotice('Não consegui analisar a foto com a IA agora. Tente de novo em instantes ou digite o valor manualmente.');
+          } else if (result.status === 'no_consent') {
+            setAiNotice('A análise por IA está desativada. Ative em Perfil → Conta e privacidade para ler o glicosímetro por foto.');
           }
           setStep('manual');
         }

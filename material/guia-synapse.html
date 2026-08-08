@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Os primeiros dias — Guia para famílias de crianças com diabetes tipo 1</title>
+<style>
+  @page {
+    size: A4;
+    margin: 20mm 18mm 18mm 18mm;
+    @bottom-center {
+      content: "Doce Cuidado · Equipe Synapse — " counter(page);
+      font-family: Georgia, serif; font-size: 8.5pt; color: #9a8f88;
+    }
+  }
+  @page :first { margin: 0; @bottom-center { content: ""; } }
+
+  :root {
+    --ink: #2c2320;
+    --ink2: #5d5350;
+    --ink3: #8b807b;
+    --red: #d8556a;
+    --rose: #fdeef1;
+    --sky: #2f7fa8;
+    --skybg: #eef6fb;
+    --mint: #e8f6ed;
+    --green: #2b8a5a;
+    --peach: #fdf1e7;
+    --line: #ece5e1;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--ink);
+    font-size: 10.5pt;
+    line-height: 1.62;
+    margin: 0;
+  }
+
+  /* ---------- capa ---------- */
+  .cover {
+    page-break-after: always;
+    height: 297mm;
+    padding: 62mm 22mm 20mm;
+    background: linear-gradient(158deg, #fdf1e7 0%, #fdeef1 46%, #eef6fb 100%);
+    position: relative;
+  }
+  .cover .drop {
+    width: 74px; height: 74px; margin-bottom: 30mm;
+    border-radius: 50% 50% 50% 10px; transform: rotate(-45deg);
+    background: linear-gradient(150deg, var(--red), #f0899a);
+  }
+  .cover .kicker {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 10pt; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--red); font-weight: 700; margin-bottom: 9mm;
+  }
+  .cover h1 {
+    font-size: 46pt; line-height: 1.06; margin: 0 0 9mm; font-weight: normal;
+    letter-spacing: -.02em; max-width: 150mm;
+  }
+  .cover .sub {
+    font-size: 14.5pt; color: var(--ink2); line-height: 1.52; margin: 0;
+    max-width: 142mm;
+  }
+  .cover .foot {
+    position: absolute; bottom: 24mm; left: 24mm; right: 24mm;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 9.5pt; color: var(--ink2); line-height: 1.75;
+    border-top: 1px solid rgba(0,0,0,.10); padding-top: 6mm;
+  }
+  .cover .foot b { color: var(--ink); }
+
+  /* ---------- tipografia ---------- */
+  h2 {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 17pt; line-height: 1.25; margin: 0 0 2mm;
+    letter-spacing: -.01em; page-break-after: avoid;
+  }
+  h2 .num {
+    display: block; font-size: 9pt; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--red); font-weight: 700; margin-bottom: 2.5mm;
+  }
+  h3 {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 11.5pt; margin: 7mm 0 2mm; color: var(--ink);
+    page-break-after: avoid;
+  }
+  .chapter { page-break-before: always; }
+  .lede { font-size: 11.5pt; color: var(--ink2); font-style: italic; margin: 0 0 6mm; }
+  p { margin: 0 0 3.5mm; }
+  ul, ol { margin: 0 0 4mm; padding-left: 5.5mm; }
+  li { margin-bottom: 1.8mm; }
+  strong { color: var(--ink); }
+  a { color: var(--sky); }
+
+  /* ---------- blocos ---------- */
+  .box {
+    padding: 5mm 6mm; border-radius: 3mm; margin: 5mm 0;
+    page-break-inside: avoid;
+  }
+  .box .t {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 8.5pt; letter-spacing: .16em; text-transform: uppercase;
+    font-weight: 700; margin-bottom: 2.5mm;
+  }
+  .box p:last-child, .box ul:last-child, .box ol:last-child { margin-bottom: 0; }
+  .alert { background: var(--rose); border-left: 3.5pt solid var(--red); }
+  .alert .t { color: var(--red); }
+  .tip   { background: var(--mint); border-left: 3.5pt solid var(--green); }
+  .tip .t { color: var(--green); }
+  .note  { background: var(--skybg); border-left: 3.5pt solid var(--sky); }
+  .note .t { color: var(--sky); }
+
+  blockquote {
+    margin: 5mm 0; padding: 0 0 0 6mm; border-left: 2pt solid var(--line);
+    font-style: italic; color: var(--ink2); page-break-inside: avoid;
+  }
+  blockquote cite {
+    display: block; font-style: normal; font-size: 8.5pt; color: var(--ink3);
+    margin-top: 2mm; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 4mm 0 5mm; font-size: 9.5pt; }
+  th, td { text-align: left; padding: 2.6mm 3mm; border-bottom: .6pt solid var(--line); vertical-align: top; }
+  th {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 8.5pt; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3);
+  }
+
+  /* passos numerados */
+  .steps { counter-reset: s; list-style: none; padding: 0; margin: 4mm 0; }
+  .steps li {
+    counter-increment: s; position: relative; padding-left: 9mm; margin-bottom: 3mm;
+  }
+  .steps li::before {
+    content: counter(s); position: absolute; left: 0; top: .4mm;
+    width: 6mm; height: 6mm; border-radius: 50%; background: var(--red); color: #fff;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 9pt; font-weight: 700; text-align: center; line-height: 6mm;
+  }
+
+  /* sumário */
+  .toc { list-style: none; padding: 0; margin: 6mm 0 0; }
+  .toc li {
+    display: flex; align-items: baseline; gap: 2mm; margin-bottom: 3.2mm;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 10.5pt;
+  }
+  .toc .n { color: var(--red); font-weight: 700; min-width: 7mm; }
+  .toc .d { flex: 1; border-bottom: .6pt dotted #d8cec8; transform: translateY(-1mm); }
+  .toc .s { color: var(--ink3); font-size: 9pt; }
+
+  .cardtitle {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-weight: 700; font-size: 10pt; margin-bottom: 1mm;
+  }
+  .qa { margin-bottom: 4mm; page-break-inside: avoid; }
+  .qa .q { font-weight: bold; }
+  .qa .a { color: var(--ink2); }
+
+  .refs { font-size: 9pt; color: var(--ink2); }
+  .refs li { margin-bottom: 2.5mm; }
+  .small { font-size: 8.5pt; color: var(--ink3); line-height: 1.55; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════ CAPA ══════════════════ -->
+<section class="cover">
+  <div class="drop"></div>
+  <div class="kicker">Doce Cuidado · Equipe Synapse</div>
+  <h1>Os primeiros dias</h1>
+  <p class="sub">Um guia para famílias de crianças que acabaram de receber o diagnóstico de diabetes tipo&nbsp;1 — escrito a partir de quem já passou por isso.</p>
+  <div class="foot">
+    <b>Equipe Synapse</b> — estudantes do IFMG<br />
+    Desafio CI-IA Saúde (UFMG) · 2026<br />
+    <span style="color:#8b807b">Material educativo. Não substitui a orientação da sua equipe de saúde.</span>
+  </div>
+</section>
+
+<!-- ══════════════════ ABERTURA ══════════════════ -->
+<section>
+  <h2><span class="num">Antes de começar</span>Para quem é este guia</h2>
+
+  <p class="lede">Se você chegou aqui há poucos dias, provavelmente está cansado, assustado e com muito mais perguntas do que respostas. É exatamente para esse momento que este material foi feito.</p>
+
+  <p>Nós somos a <strong>Equipe Synapse</strong>, estudantes do IFMG, e escrevemos o aplicativo <strong>Doce Cuidado</strong> como resposta ao desafio do <strong>CI-IA Saúde</strong>, o Centro de Inovação em Inteligência Artificial para a Saúde sediado na UFMG. Antes de escrever uma linha de código a mais, fizemos outra coisa: <strong>ouvimos as famílias</strong>.</p>
+
+  <p>Estudamos oito depoimentos em vídeo de mães, pais e pessoas que vivem com diabetes tipo 1 — brasileiros, britânicos e norte-americanos — e o <em>Guia Educacional para a População: Diabetes</em>, publicado em 2025 pela Sociedade Brasileira de Endocrinologia e Metabologia, Regional São Paulo. Este guia é o que aprendemos com eles, organizado para ser útil na primeira semana.</p>
+
+  <div class="note">
+    <div class="t">Como este guia foi construído</div>
+    <p>Tudo o que se refere a <strong>conduta</strong> — o que fazer numa hipoglicemia, quando procurar emergência, como guardar a insulina — vem do guia da SBEM-SP e está indicado ao longo do texto. Tudo o que se refere a <strong>experiência vivida</strong> vem dos depoimentos, e aparece como experiência: o que funcionou para uma família pode não servir para a sua.</p>
+    <p>Nós não somos profissionais de saúde. Este guia <strong>não sugere doses</strong>, não ajusta tratamento e não substitui a sua equipe. Ele existe para você chegar à próxima consulta com melhores perguntas.</p>
+  </div>
+
+  <h3>O que tem aqui dentro</h3>
+  <ul class="toc">
+    <li><span class="n">1</span> <span>Os sinais que ninguém te contou</span> <span class="d"></span> <span class="s">antes do diagnóstico</span></li>
+    <li><span class="n">2</span> <span>O que é diabetes tipo 1 (e o que não é)</span> <span class="d"></span> <span class="s">o básico</span></li>
+    <li><span class="n">3</span> <span>Hipoglicemia: a regra dos 15</span> <span class="d"></span> <span class="s">decore esta</span></li>
+    <li><span class="n">4</span> <span>Glicemia alta, cetonas e quando é emergência</span> <span class="d"></span> <span class="s">urgência</span></li>
+    <li><span class="n">5</span> <span>A rotina que cabe na vida real</span> <span class="d"></span> <span class="s">dia a dia</span></li>
+    <li><span class="n">6</span> <span>Escola, festa e dormir na casa da amiga</span> <span class="d"></span> <span class="s">vida lá fora</span></li>
+    <li><span class="n">7</span> <span>Quem cuida também precisa de cuidado</span> <span class="d"></span> <span class="s">você</span></li>
+    <li><span class="n">8</span> <span>Explicando para os outros</span> <span class="d"></span> <span class="s">respostas prontas</span></li>
+    <li><span class="n">9</span> <span>Perguntas para levar à consulta</span> <span class="d"></span> <span class="s">destacável</span></li>
+  </ul>
+</section>
+
+<!-- ══════════════════ 1 ══════════════════ -->
+<section class="chapter">
+  <h2><span class="num">Capítulo 1</span>Os sinais que ninguém te contou</h2>
+
+  <p class="lede">Em cinco das oito histórias que estudamos, a criança foi levada ao médico por outro motivo — e o diabetes só apareceu quando o quadro já era grave.</p>
+
+  <p>Virose. Bronquiolite. Infecção urinária. Dor de garganta. Foram esses os diagnósticos iniciais. Um bebê de 10 meses foi tratado como crise respiratória em vários serviços até alguém pedir uma medida de glicemia — ele acabou intubado por quatro dias. Uma menina de 7 anos teve duas semanas de sintomas interpretados como "ela está enrolando para dormir", e chegou ao pronto-socorro com as unhas azuladas. Um menino de 2 anos chegou com glicemia de 670&nbsp;mg/dL, direto para a UTI.</p>
+
+  <p>Nenhuma dessas famílias foi negligente. Elas simplesmente não sabiam o que procurar. Por isso este é o primeiro capítulo — e o único que pedimos que você <strong>compartilhe com quem não tem diabetes na família</strong>.</p>
+
+  <h3>Os sinais mais comuns em crianças</h3>
+  <ul>
+    <li><strong>Muito xixi.</strong> Volta a fazer xixi na cama depois de já ter parado. Em bebê, a fralda não segura, vaza toda noite.</li>
+    <li><strong>Muita sede.</strong> Acorda de madrugada pedindo água. Bebe garrafas inteiras. Pede água gelada o tempo todo.</li>
+    <li><strong>Perder peso</strong> sem explicação — mesmo comendo bem, às vezes comendo muito.</li>
+    <li><strong>Cansaço.</strong> Sem energia, quer dormir a toda hora, larga a brincadeira no meio.</li>
+    <li><strong>Dor de barriga</strong>, enjoo ou vômito — sobretudo se aparecem e somem, sem febre.</li>
+    <li><strong>Em bebês:</strong> recusa alimentar e emagrecimento rápido em quem vinha ganhando peso.</li>
+  </ul>
+
+  <div class="tip">
+    <div class="t">O que pedir</div>
+    <p>Procure atendimento e peça uma <strong>medida de glicemia</strong> — a ponta de dedo, que leva segundos e custa quase nada. Se dois ou três desses sinais estiverem juntos, isso não espera a próxima consulta.</p>
+  </div>
+
+  <div class="alert">
+    <div class="t">Sinais de urgência — procure emergência agora</div>
+    <ul>
+      <li>Respiração rápida e profunda</li>
+      <li>Hálito adocicado ou com cheiro de acetona (removedor de esmalte)</li>
+      <li>Vômitos que não param</li>
+      <li>Sonolência excessiva, confusão ou dificuldade para acordar</li>
+    </ul>
+    <p style="margin-top:3mm">Isso pode ser <strong>cetoacidose diabética</strong>. Ligue <strong>192</strong> ou vá ao pronto-socorro.</p>
+  </div>
+
+  <blockquote>
+    "Se tivesse feito pelo menos a ponta de dedo, não teria acontecido isso."
+    <cite>Mãe de um bebê diagnosticado aos 10 meses, após duas internações por cetoacidose</cite>
+  </blockquote>
+
+  <h3>E os irmãos?</h3>
+  <p>Se já há alguém com diabetes tipo 1 na família, converse com o pediatra sobre <strong>triagem dos irmãos</strong>. Existem exames que identificam o risco antes de qualquer sintoma — e uma das famílias que estudamos passou a fazê-los anualmente nos outros dois filhos, justamente por ter descoberto tarde na primeira.</p>
+</section>
+
+<!-- ══════════════════ 2 ══════════════════ -->
+<section class="chapter">
+  <h2><span class="num">Capítulo 2</span>O que é diabetes tipo 1 (e o que não é)</h2>
+
+  <p class="lede">Uma menina de 9 anos explicou para uma amiguinha assim: "a minha glicose é um pouco mais alta que a sua". É uma boa definição — e é por onde vamos começar.</p>
+
+  <p>O pâncreas produz <strong>insulina</strong>, o hormônio que permite à glicose (o açúcar do sangue) entrar nas células e virar energia. No diabetes tipo 1, o corpo <strong>para de produzir insulina</strong>. Sem ela, a glicose se acumula no sangue em vez de alimentar o corpo. Por isso o tratamento é repor essa insulina, todos os dias.</p>
+
+  <p>É por isso, também, que a criança emagrecia comendo: a comida entrava, mas a energia não chegava onde precisava.</p>
+
+  <h3>Cinco coisas que o tipo 1 não é</h3>
+
+  <table>
+    <tr><th style="width:34%">O que se diz</th><th>O que é</th></tr>
+    <tr><td><strong>"Foi de comer doce"</strong></td><td>Não. No tipo 1 o corpo deixa de produzir insulina. Nenhuma escolha alimentar da família causou isso.</td></tr>
+    <tr><td><strong>"É igual ao da vovó"</strong></td><td>Não. No tipo 2 o corpo produz insulina mas não consegue usá-la bem; é mais comum em adultos e o tratamento é diferente.</td></tr>
+    <tr><td><strong>"É doença de criança"</strong></td><td>Não. Há diagnósticos de tipo 1 aos 60, aos 70 anos.</td></tr>
+    <tr><td><strong>"Tem cura, vi na internet"</strong></td><td>Não tem cura. Desconfie de qualquer promessa nesse sentido.</td></tr>
+    <tr><td><strong>"Agora só pode comer diet"</strong></td><td>Não. Com contagem de carboidratos e a insulina certa, a criança come de tudo.</td></tr>
+  </table>
+
+  <div class="tip">
+    <div class="t">A notícia que mais alivia</div>
+    <p>Pão, batata, massa, fruta e bolo de aniversário continuam na mesa. O que muda é o planejamento: contar o carboidrato e ajustar a insulina conforme a orientação da equipe. Uma mãe contou que a família passou dias achando que a filha nunca mais comeria normalmente — até descobrir, ainda no hospital, que podia.</p>
+    <p class="small" style="margin-top:2mm">Definições e mitos: Guia Educacional da SBEM-SP (2025).</p>
+  </div>
+
+  <h3>Os primeiros dias em casa</h3>
+  <p>Uma mãe descreveu a alta hospitalar assim: <em>"é uma alta que não é uma alta — ali tudo está começando"</em>. Quatro coisas que vale resolver logo:</p>
+
+  <ol class="steps">
+    <li><strong>Um lugar só para o material.</strong> Insulina, glicosímetro, fitas, lancetas e o carboidrato de resgate (suco, mel, balas de glicose) sempre no mesmo lugar. E uma bolsinha pronta para sair de casa.</li>
+    <li><strong>Os telefones na parede.</strong> Quem procurar em dúvida, quem procurar em emergência — anotados onde todo mundo da casa vê, não só no seu celular.</li>
+    <li><strong>Uma rotina escrita.</strong> O que foi medido, aplicado e comido, em ordem, do acordar ao dormir. Não é burocracia: é o que permite à equipe ajustar o tratamento. (O guia da SBEM-SP recomenda exatamente isso.)</li>
+    <li><strong>Um segundo adulto treinado.</strong> Se só uma pessoa sabe medir e aplicar, essa pessoa não dorme, não adoece e não sai de casa. Ensine alguém na primeira semana.</li>
+  </ol>
+
+  <p><strong>O que pode esperar:</strong> entender tudo. Ninguém aprende diabetes em uma semana. As famílias que estudamos levaram meses — e seguem aprendendo.</p>
+</section>
+
+<!-- ══════════════════ 3 ══════════════════ -->
+<section class="chapter">
+  <h2><span class="num">Capítulo 3</span>Hipoglicemia: a regra dos 15</h2>
+
+  <p class="lede">Se você só decorar uma página deste guia, que seja esta.</p>
+
+  <p><strong>Hipoglicemia é a glicose abaixo de 70&nbsp;mg/dL.</strong> É a situação mais comum de quem usa insulina e a que mais assusta — porque acontece rápido e porque o cérebro depende de glicose para funcionar.</p>
+
+  <h3>Sinais</h3>
+  <table>
+    <tr><th>No corpo</th><th>No comportamento</th></tr>
+    <tr>
+      <td>Tremores<br />Suor frio<br />Tontura<br />Coração acelerado<br />Fome intensa<br />Dor de cabeça</td>
+      <td>Confusão, dificuldade de concentração<br />Irritação repentina<br />Choro sem motivo aparente<br />Palidez<br />Fala arrastada</td>
+    </tr>
+  </table>
+  <p class="small">Em casos graves: perda de consciência ou convulsão.</p>
+
+  <div class="alert">
+    <div class="t">A regra dos 15</div>
+    <ol class="steps" style="margin-top:1mm">
+      <li><strong>15&nbsp;g de carboidrato de ação rápida.</strong> Escolha um: 1 copo (150&nbsp;ml) de suco de laranja · 1 colher de sopa de açúcar dissolvido em água · 3 a 4 balas de glicose · 1 colher de mel.</li>
+      <li><strong>Espere 15 minutos</strong> e meça de novo.</li>
+      <li><strong>Se ainda estiver baixa</strong> ou os sintomas continuarem, <strong>repita</strong>.</li>
+    </ol>
+    <p style="margin-top:3mm"><strong>Nunca dê nada pela boca</strong> se a criança estiver desacordada, sonolenta demais, confusa ou sem conseguir engolir — há risco de engasgo. Nessa situação: <strong>ligue 192 imediatamente</strong>.</p>
+    <p class="small" style="margin-top:2mm">Conduta conforme o Guia Educacional da SBEM-SP (2025).</p>
+  </div>
+
+  <h3>Três coisas que as famílias aprenderam errando</h3>
+  <ul>
+    <li><strong>Deixe a criança sentada</strong> enquanto o açúcar age. Uma mãe contou que na cama elástica as amigas corriam buscar o suco, a filha bebia e voltava a pular — e caía de novo. Quinze minutos parada não é castigo, é parte do tratamento.</li>
+    <li><strong>Carboidrato no bolso, não em casa.</strong> A queda acontece na bicicleta, no parque, no meio do mato. Uma menina precisou ser carregada de volta por uma prima porque o suco estava na cozinha.</li>
+    <li><strong>Depois da hipo, todo mundo fica abalado</strong> — inclusive quem cuida. Uma mãe descreveu achar que ia infartar durante a hipoglicemia mais baixa que o filho já teve. Isso não é fraqueza; é o corpo reagindo a um susto real.</li>
+  </ul>
+
+  <h3>Prevenir</h3>
+  <ul>
+    <li>Não pular refeições.</li>
+    <li>Ter sempre uma fonte de carboidrato por perto.</li>
+    <li>Manter a rotina de alimentação e medicação orientada pela equipe.</li>
+    <li>Acompanhar a glicemia com frequência, especialmente em uso de insulina.</li>
+    <li><strong>Avisar familiares, escola e colegas sobre como agir.</strong></li>
+  </ul>
+  <p class="small">Medidas de prevenção conforme o Guia da SBEM-SP (2025).</p>
+</section>
+
+<!-- ══════════════════ 4 ══════════════════ -->
+<section class="chapter">
+  <h2><span class="num">Capítulo 4</span>Glicemia alta, cetonas e quando é emergência</h2>
+
+  <p class="lede">Glicemia alta acontece — e quase sempre se resolve com o que a equipe já orientou. O que não é rotina é a glicemia alta que não desce.</p>
+
+  <p>Comida a mais, dose a menos, doença, estresse, crescimento, um dia de prova. Muita coisa eleva a glicemia, e nem tudo é erro de alguém. O sinal de atenção é outro: quando a correção orientada pela equipe <strong>não faz efeito</strong>.</p>
+
+  <h3>O que são cetonas</h3>
+  <p>Quando falta insulina, a glicose não entra nas células e o corpo passa a queimar gordura para ter energia. Esse processo produz <strong>cetonas</strong>. Acumuladas, elas acidificam o sangue e levam à <strong>cetoacidose diabética</strong> — que é emergência médica.</p>
+
+  <div class="alert">
+    <div class="t">Isso é 192, sem hesitar</div>
+    <ul>
+      <li>Respiração rápida e profunda</li>
+      <li>Hálito adocicado ou com cheiro de acetona</li>
+      <li>Vômitos, dor de barriga forte</li>
+      <li>Sonolência ou confusão</li>
+    </ul>
+    <p style="margin-top:3mm">Enquanto a ajuda não chega: mantenha a criança calma e <strong>não aplique insulina extra por conta própria</strong>.</p>
+  </div>
+
+  <h3>Medir cetonas</h3>
+  <p>Existem <strong>fitas de urina</strong> e <strong>medidores de cetona no sangue</strong>. A diferença importa: a urina mostra o que estava acontecendo <em>há algumas horas</em>; o sangue mostra o agora. Uma mãe só descobriu isso um ano depois do diagnóstico, quando outras mães lhe contaram. Pergunte à sua equipe qual usar e em que situação.</p>
+
+  <h3>Antes de concluir que "a dose não funcionou"</h3>
+  <p>Nem toda glicemia teimosa é dose insuficiente. Vale conferir o <strong>caminho da insulina</strong>:</p>
+  <ul>
+    <li><strong>O local de aplicação está absorvendo?</strong> Uma família passou um dia inteiro com a glicemia subindo; ao trocar o local, a glicemia começou a cair na hora.</li>
+    <li><strong>A agulha está entupida? A caneta tem insulina suficiente?</strong></li>
+    <li><strong>A insulina foi guardada certo?</strong> Calor e congelamento a inutilizam sem mudar a aparência.</li>
+    <li><strong>Se usa bomba:</strong> ela está de fato entregando? Uma família descobriu, de manhã, que a bomba havia descarregado durante a noite e, ao religar, não tinha reconectado ao sensor — nenhuma insulina havia sido entregue por horas.</li>
+  </ul>
+
+  <div class="note">
+    <div class="t">Como guardar a insulina</div>
+    <p><strong>Frasco em uso (aberto):</strong> em geral dura até 28 dias em temperatura ambiente, em local fresco — o prazo varia por tipo e fabricante, então confira a bula.</p>
+    <p><strong>Frasco fechado:</strong> na geladeira, entre 2&nbsp;°C e 8&nbsp;°C, na <strong>parte central</strong> — nunca na porta, que oscila de temperatura. Nunca no congelador.</p>
+    <p class="small" style="margin-top:2mm">Guia da SBEM-SP (2025).</p>
+  </div>
+
+  <h3>Ponta de dedo e sensor mostram coisas diferentes</h3>
+  <p>Uma educadora em diabetes explicou assim: <strong>a ponta de dedo é uma foto; o sensor é um vídeo</strong>. A ponta de dedo mede a glicose no sangue naquele instante. O sensor mede no líquido entre as células, e a glicose leva alguns minutos para chegar lá — <em>"é uma fofoqueira atrasada, conta uma história que já passou"</em>.</p>
+  <ul>
+    <li>Quando a glicemia muda rápido (depois de comer, durante brincadeira intensa), os dois números divergem. É esperado, não é defeito.</li>
+    <li>Em jejum ou de madrugada, quando está estável, eles costumam bater.</li>
+    <li><strong>Suspeita de hipoglicemia: confirme na ponta de dedo</strong> — para não oferecer mais açúcar do que o necessário, e para não deixar de tratar uma hipo real.</li>
+    <li><strong>Hipo por pressão:</strong> dormir em cima do sensor gera leitura falsamente baixa. É erro de leitura pela compressão. Antes do susto: ponta de dedo.</li>
+  </ul>
+  <p class="small">O sensor contínuo evita furos constantes e alerta hipo e hiperglicemia, mas seu uso deve ser individualizado e orientado por profissionais de saúde (SBEM-SP, 2025).</p>
+</section>
+
+<!-- ══════════════════ 5 ══════════════════ -->
+<section class="chapter">
+  <h2><span class="num">Capítulo 5</span>A rotina que cabe na vida real</h2>
+
+  <p class="lede">O diabetes precisa ser olhado todos os dias. Mas não pode virar o eixo da família inteira.</p>
+
+  <p>O guia da SBEM-SP organiza o tratamento em <strong>cinco áreas</strong>, e elas se sustentam mutuamente — mexer em uma muda as outras:</p>
+
+  <table>
+    <tr><th style="width:32%">Área</th><th>Na prática</th></tr>
+    <tr><td><strong>Alimentação</strong></td><td>Contar carboidrato, não proibir alimento.</td></tr>
+    <tr><td><strong>Exercício físico</strong></td><td>Faz bem e derruba a glicemia. Medir antes, carboidrato no bolso.</td></tr>
+    <tr><td><strong>Teste de glicose</strong></td><td>Nos horários combinados com a equipe — e sempre que algo parecer estranho.</td></tr>
+    <tr><td><strong>Manejo das hipoglicemias</strong></td><td>A regra dos 15, sabida por todo mundo da casa.</td></tr>
+    <tr><td><strong>Insulina</strong></td><td>Dose e <strong>horário</strong>, conforme a prescrição.</td></tr>
+  </table>
+
+  <h3>O tempo é metade da dose</h3>
+  <p>Uma mãe passou <strong>mais de um ano</strong> aplicando a insulina rápida na hora da refeição, achando que era assim. A glicemia subia depois de comer e, quando a insulina finalmente agia, já era hipoglicemia. Nas consultas ela ouvia que precisava "prestar mais atenção" — e chorava, achando que era incompetente. Não era: era o tempo de ação da insulina que ela usava.</p>
+
+  <p>Insulinas diferentes têm tempos diferentes. As <strong>rápidas</strong> costumam ser aplicadas alguns minutos <em>antes</em> da refeição; as <strong>ultrarrápidas</strong> agem quase de imediato e podem ser aplicadas na hora de comer, às vezes até logo depois; as <strong>basais</strong> cobrem o dia todo, em horário fixo.</p>
+
+  <div class="tip">
+    <div class="t">A pergunta exata para a próxima consulta</div>
+    <p>"<strong>Quantos minutos antes da refeição eu aplico esta insulina?</strong>" — e anote a resposta ao lado do nome da insulina. Se a insulina mudar, refaça a pergunta.</p>
+  </div>
+
+  <p><strong>E quando a criança não come tudo?</strong> Esse é o problema real de quem tem criança pequena: você aplica para um prato inteiro e ela come metade. Leve essa dificuldade concreta à equipe — existem estratégias, mas elas dependem de qual insulina está em uso e precisam ser orientadas caso a caso.</p>
+
+  <h3>Coisas que só se aprende vivendo</h3>
+  <ul>
+    <li><strong>Anote o horário</strong>, não só a dose. É o que explica por que um dia deu certo e outro não.</li>
+    <li><strong>Comer fora dá trabalho</strong> porque cardápio não traz carboidrato. Vale ter referências dos pratos que a família mais pede.</li>
+    <li><strong>Emoção mexe na glicemia.</strong> Raiva, susto e ansiedade liberam energia extra: a glicose sobe sem ter comido nada. Um dia de prova entra na conta.</li>
+    <li><strong>A ceia influencia a madrugada.</strong> Uma mãe percebeu que o leite antes de dormir mudava a glicemia da manhã seguinte. Anotar é o que revela esses padrões.</li>
+    <li><strong>Planejamento, não proibição.</strong> Como resumiu uma família: <em>"as coisas que a gente achava que não podia mais fazer, a gente pode — só exige um pouco mais de planejamento"</em>.</li>
+  </ul>
+
+  <div class="note">
+    <div class="t">Uma palavra sobre "controle"</div>
+    <p>Você vai ouvir muito "controle glicêmico". Uma mulher que vive com diabetes há quase 40 anos preferiu trocar a palavra: <em>"o controle frustra muita gente o tempo todo, porque 100% não existe"</em>. Ela fala em <strong>manejo</strong>, em <strong>cuidado</strong>. Nós adotamos o mesmo vocabulário — no app e neste guia.</p>
+  </div>
+</section>
+
+<!-- ══════════════════ 6 ══════════════════ -->
+<section class="chapter">
+  <h2><span class="num">Capítulo 6</span>Escola, festa e dormir na casa da amiga</h2>
+
+  <p class="lede">É aqui que a vida realmente trava — e onde um combinado por escrito resolve mais do que qualquer explicação apressada no portão.</p>
+
+  <h3>A escola</h3>
+  <p>Entregar a criança deixa de ser só deixar e ir embora. O que precisa estar acertado, de preferência num documento entregue à direção e à professora:</p>
+
+  <ul>
+    <li><strong>Quem</strong> mede, quem observa, quem aplica — com nome e um substituto.</li>
+    <li><strong>Onde</strong> ficam o glicosímetro e o carboidrato de resgate.</li>
+    <li><strong>Direito a beber água e comer quando precisar</strong>, inclusive durante prova.</li>
+    <li><strong>O que fazer numa hipoglicemia</strong>, passo a passo, e quando ligar para a família e para o 192.</li>
+    <li><strong>Faltas e atrasos</strong> por consulta ou por um dia difícil não deveriam penalizar a criança.</li>
+    <li><strong>Passeios e jogos fora da escola:</strong> quem acompanha e com que material.</li>
+    <li><strong>Educação física é para participar.</strong> O combinado é medir antes e ter carboidrato à mão — não ficar de fora.</li>
+  </ul>
+
+  <div class="tip">
+    <div class="t">Um ajuste que devolveu aula para uma criança</div>
+    <p>No começo, uma família combinou que a filha iria à enfermaria a cada hipoglicemia. Ela perdia aula toda vez — ia, comia, esperava 15 minutos, voltava. Depois de um ano, mudaram: o carboidrato de resgate passou a ficar <strong>na própria carteira</strong>, e a enfermaria ficou reservada para os casos mais sérios. A menina parou de perder conteúdo.</p>
+  </div>
+
+  <p>Se encontrar resistência a algum ponto — celular por perto para ver o sensor, comer em sala, participar do time —, um <strong>documento da equipe de saúde</strong> costuma resolver. Uma família precisou de carta do endocrinologista para que a filha pudesse manter o telefone no banco de reservas do time de softbol, porque era ele que mostrava a glicemia.</p>
+
+  <h3>Dormir na casa da amiga</h3>
+  <p>Uma mãe contou que, desde o diagnóstico, sabia que os convites diminuiriam — <em>"porque os pais têm medo"</em>. E diminuíram mesmo. O que funcionou para ela:</p>
+  <ul>
+    <li><strong>Virar a casa que recebe.</strong> Menos ansiedade para todo mundo, e a criança não fica de fora.</li>
+    <li><strong>Não assustar o anfitrião com excesso de instrução.</strong> No primeiro <em>sleepover</em>, foi o pai quem levou — de propósito. A conversa inteira foi: "a gente se vira bem, ela tem o celular no volume alto, e a gente só pede que o seu também fique".</li>
+    <li><strong>Ir construindo autonomia antes.</strong> A criança que sabe reconhecer os próprios sinais e se resolver dá muito menos trabalho ao adulto de plantão.</li>
+  </ul>
+
+  <h3>Autonomia, um passo de cada vez</h3>
+  <p>A frase que melhor resume o que ouvimos: <strong>"quanto mais liberdade eu dei, mais independente ela ficou."</strong></p>
+  <p>Uma escada possível — a idade de cada degrau é da sua criança, não do calendário:</p>
+  <ol class="steps">
+    <li>Reconhecer o que está sentindo e avisar um adulto.</li>
+    <li>Participar: segurar o aparelho, escolher o dedo, apertar o botão.</li>
+    <li>Medir sozinha, com o adulto por perto.</li>
+    <li>Contar carboidrato com apoio, depois sozinha.</li>
+    <li>Aplicar, conferindo a dose com o adulto.</li>
+    <li>Decidir o que fazer numa hipo leve — e avisar depois.</li>
+  </ol>
+
+  <blockquote>
+    "Me avisa quando eu chegar nos 60. Me dá a chance de resolver primeiro."
+    <cite>Menina de 10 anos, negociando com a mãe quando ser avisada. A mãe aceitou — e parou de precisar avisar.</cite>
+  </blockquote>
+
+  <p><strong>Sobre a adolescência:</strong> uma mulher diagnosticada aos 11 anos, que hoje recebe mensagens de adolescentes, foi direta — quando a autonomia não é dada, o adolescente <strong>a toma escondido</strong>. E aí ninguém mais sabe o que está acontecendo. Vale mais negociar cedo do que descobrir tarde.</p>
+
+  <p><strong>O que não delegar:</strong> a criança não deveria carregar sozinha o peso emocional. Uma adulta contou que assumiu, ainda menina, <em>"uma responsabilidade que talvez não fosse minha, para poupar os meus pais de um sofrimento que eu sabia que existia"</em>. Autonomia técnica, sim. Solidão, não.</p>
+</section>
+
+<!-- ══════════════════ 7 ══════════════════ -->
+<section class="chapter">
+  <h2><span class="num">Capítulo 7</span>Quem cuida também precisa de cuidado</h2>
+
+  <p class="lede">Este é o capítulo que quase não se escreve — e o tema que atravessou todos os depoimentos que estudamos.</p>
+
+  <p>Uma mãe: <em>"eu não durmo. Desde o diagnóstico, eu não consigo dormir."</em> Outra chorava depois das consultas, achando que era incompetente, quando o problema era técnico. Uma psicóloga que também é mãe de uma criança com diabetes descreveu o padrão que via nos grupos: a mãe assume a linha de frente inteira, não aceita ajuda, e a sobrecarga vira irritação — que vira uma relação pior com a própria criança.</p>
+
+  <p>Ela nomeou isso como uma questão de <strong>justiça de gênero</strong>: socialmente, espera-se que a mulher tome a frente. E observou que muitas mães <em>equiparam pedir ajuda a fracasso</em>.</p>
+
+  <div class="note">
+    <div class="t">Isso não é conversa mole — é parte do tratamento</div>
+    <p>Segundo o guia da SBEM-SP, a <strong>depressão é duas a três vezes mais frequente</strong> em pessoas que convivem com diabetes, e para cada caso diagnosticado há pelo menos mais dois que não são. Ela reduz o autocuidado: descuido com alimentação, com a medida da glicemia, com a medicação. Recomenda-se triagem anual.</p>
+    <p>Cansaço excessivo, alteração do sono, perda de interesse e queda no cuidado merecem avaliação profissional — em quem tem diabetes <strong>e</strong> em quem cuida.</p>
+  </div>
+
+  <h3>Três coisas que mudam o jogo</h3>
+
+  <p class="cardtitle">1. Dividir de verdade</p>
+  <p><em>"Pedir ajuda não é sinal de fracasso, é sinal de força."</em> O guia da SBEM-SP diz o mesmo, com todas as letras: <em>"avalie se é necessário ter ajuda de alguém para coordenar o seu tratamento. Não é vergonha pedir ajuda!"</em> Na prática: treine um segundo adulto, revezem a madrugada, aceitem o oferecimento da avó, do vizinho, da irmã mais velha.</p>
+
+  <p class="cardtitle">2. Ter onde desabafar que não seja a criança</p>
+  <p>Uma mãe formulou de forma direta: <strong>desabafe com outras mães, não com a sua filha.</strong> Porque a criança escuta — e quando o adulto repete "eu odeio o diabetes", a criança aprende a dizer "eu odeio o diabetes". E é ela quem vive com ele. Grupos de famílias, terapia, uma amiga que entenda: o que existir.</p>
+
+  <p class="cardtitle">3. Ser pessoa antes de ser cuidador</p>
+  <p>A terapeuta de uma das mães entrevistadas disse: <em>"você precisa de um espaço para ser você — sem ser mãe, sem ser esposa, sem ser filha."</em> É a metáfora da máscara de oxigênio: você só cuida do outro se cuidar de si.</p>
+
+  <h3>Sobre "mãe pâncreas"</h3>
+  <p>O termo é bonito e diz respeito a um cuidado real. Mas a psicóloga que entrevistamos fez uma ressalva que vale guardar: quando vira <strong>identidade</strong>, apaga dois nomes de uma vez. <em>"Mãe de uma DM1"</em> — e qual é o nome dessa criança? E o dessa mãe?</p>
+  <blockquote>
+    "Para além da mãe pâncreas, eu sou a Débora. Eu sou atriz, psicóloga."
+    <cite>Psicóloga e mãe de uma criança com diabetes tipo 1</cite>
+  </blockquote>
+  <p>E há uma razão prática: <strong>a criança vai crescer, e o pâncreas emprestado não vai junto</strong>. A autonomia precisa caber no plano desde cedo.</p>
+
+  <h3>E para a criança</h3>
+  <p>Ela não precisa gostar de ter diabetes. Precisa poder dizer que está difícil. Uma mãe contou que a filha pediu, num dia ruim, licença para falar um palavrão. A mãe deixou. As duas riram, e aliviou.</p>
+  <blockquote>
+    "Isso de querer ser exatamente aquilo que a gente é ainda vai nos levar além."
+    <cite>Paulo Leminski — o verso que uma das famílias adotou como lema em casa</cite>
+  </blockquote>
+</section>
+
+<!-- ══════════════════ 8 ══════════════════ -->
+<section class="chapter">
+  <h2><span class="num">Capítulo 8</span>Explicando para os outros</h2>
+
+  <p class="lede">Vai acontecer: o comentário na festa, a careta no restaurante, a pergunta na porta da escola. Quase sempre é desinformação, não maldade.</p>
+
+  <p>Aqui estão respostas curtas, prontas para usar. Recorte, decore, ensine à criança.</p>
+
+  <div class="qa"><p class="q">— "Foi de comer muito doce?"</p><p class="a">— Não. No tipo 1 o corpo para de produzir insulina. Não tem a ver com o que ela comeu.</p></div>
+  <div class="qa"><p class="q">— "Ela pode comer isso?"</p><p class="a">— Pode. Com a insulina certa, ela come de tudo — a gente só calcula antes.</p></div>
+  <div class="qa"><p class="q">— "Mas ela está comendo doce agora!"</p><p class="a">— Está corrigindo uma queda de glicemia. Doce, nessa hora, é remédio.</p></div>
+  <div class="qa"><p class="q">— "Isso passa quando ela crescer?"</p><p class="a">— Não passa. Mas dá para viver muito bem com isso.</p></div>
+  <div class="qa"><p class="q">— "Não é meio nova para ter diabetes?"</p><p class="a">— O tipo 1 aparece em qualquer idade. Tem gente diagnosticada aos 60, aos 70.</p></div>
+  <div class="qa"><p class="q">— "Vocês não podiam ter percebido antes?"</p><p class="a">— Os sinais se parecem com virose. É por isso que a gente fala sobre eles agora.</p></div>
+
+  <div class="tip">
+    <div class="t">E você não é obrigado a educar todo dia</div>
+    <p>Uma mulher que vive com diabetes há quase 40 anos contou que, num dia, explicou tudo com paciência para uma senhora que a acusou de estar se drogando ao ver a caneta de insulina no restaurante — e as duas viraram amigas. Em outros dias, respondeu atravessado. E concluiu: <em>"não sou plena todos os dias."</em> Está tudo bem.</p>
+  </div>
+
+  <h3>Para a criança dizer</h3>
+  <p>A melhor explicação que encontramos em todo o material veio de uma menina de 9 anos, para uma amiguinha:</p>
+  <blockquote>"A minha glicose é um pouco mais alta que a sua."</blockquote>
+  <p>Simples assim. Não precisa de mais nada, e não deve nenhuma explicação a ninguém.</p>
+</section>
+
+<!-- ══════════════════ 9 ══════════════════ -->
+<section class="chapter">
+  <h2><span class="num">Capítulo 9</span>Perguntas para levar à consulta</h2>
+
+  <p class="lede">Destaque esta página. Leve preenchida. Consulta rende muito mais quando as perguntas já estão escritas.</p>
+
+  <h3>Sobre a insulina</h3>
+  <ul>
+    <li>Quantos <strong>minutos antes da refeição</strong> eu aplico cada insulina que usamos?</li>
+    <li>O que fazer quando ela <strong>não come tudo</strong> depois de eu já ter aplicado?</li>
+    <li>Como e onde <strong>guardar</strong> cada uma? Por quantos dias vale depois de aberta?</li>
+    <li>Quais locais de aplicação devemos <strong>revezar</strong>, e de quanto em quanto tempo?</li>
+  </ul>
+
+  <h3>Sobre glicemia e metas</h3>
+  <ul>
+    <li>Qual é a <strong>faixa-alvo</strong> da nossa criança — e ela muda de noite?</li>
+    <li>Em quais <strong>horários</strong> devemos medir na rotina?</li>
+    <li>A partir de qual valor eu <strong>corrijo</strong>, e como?</li>
+    <li>Quando devo medir <strong>cetonas</strong>, e com qual método?</li>
+  </ul>
+
+  <h3>Sobre emergência</h3>
+  <ul>
+    <li>Qual é o nosso <strong>plano escrito</strong> para hipoglicemia grave?</li>
+    <li>Temos indicação de <strong>glucagon</strong>? Quem na família precisa saber usar?</li>
+    <li>Em que situações eu ligo para vocês, e em quais vou direto para a emergência?</li>
+    <li>O que fazer em <strong>dias de doença</strong> — febre, vômito, criança sem comer?</li>
+  </ul>
+
+  <h3>Sobre a vida</h3>
+  <ul>
+    <li>Como ajustar para <strong>educação física</strong> e esporte?</li>
+    <li>O que precisa constar no documento que vamos entregar à <strong>escola</strong>?</li>
+    <li>Ela pode <strong>dormir fora</strong>? O que a outra família precisa saber?</li>
+    <li>Quando faz sentido pensar em <strong>sensor</strong> ou <strong>bomba</strong> no nosso caso — e como se dá entrada?</li>
+    <li>Há indicação de <strong>triagem</strong> para os irmãos?</li>
+    <li>Vocês indicam algum <strong>apoio psicológico</strong> para a criança e para nós?</li>
+  </ul>
+
+  <div class="note">
+    <div class="t">Anote também, antes de ir</div>
+    <p>O que mais te preocupou desde a última consulta · o dia que deu mais errado e o que aconteceu antes · qualquer mudança de rotina, escola, sono ou humor. Muitas vezes é aí que está a resposta.</p>
+  </div>
+</section>
+
+<!-- ══════════════════ FECHAMENTO ══════════════════ -->
+<section class="chapter">
+  <h2><span class="num">Para terminar</span>Uma última coisa</h2>
+
+  <p>Se você chegou até aqui, está fazendo mais do que imagina.</p>
+
+  <p>As famílias que estudamos para escrever este guia têm uma coisa em comum: todas acharam, no começo, que não dariam conta. Todas deram. Não porque viraram especialistas em uma semana — mas porque foram aprendendo, errando, perguntando e pedindo ajuda.</p>
+
+  <p>O diabetes vai ocupar um espaço na rotina de vocês. Não deveria ocupar o lugar de tudo o mais. Como disse uma das mulheres que ouvimos:</p>
+
+  <blockquote>
+    "Eu sou uma complexidade, uma imensidão. E dentro dessa imensidão tem um pedacinho que eu tenho que cuidar, que é o diabetes."
+  </blockquote>
+
+  <p>Sua criança continua sendo sua criança.</p>
+
+  <h3>Sobre este guia</h3>
+  <p>Escrito pela <strong>Equipe Synapse</strong>, formada por estudantes do <strong>IFMG</strong>, como parte do projeto <strong>Doce Cuidado</strong>, desenvolvido para o desafio do <strong>CI-IA Saúde</strong> (Centro de Inovação em Inteligência Artificial para a Saúde), sediado na UFMG.</p>
+
+  <p>O conteúdo foi construído a partir de nove materiais: oito depoimentos em vídeo de famílias e pessoas que vivem com diabetes tipo 1, e o guia educacional da SBEM-SP. Toda orientação de conduta neste material é ancorada nesse guia; os relatos aparecem como experiência vivida, não como recomendação.</p>
+
+  <div class="alert">
+    <div class="t">Importante</div>
+    <p>Este é um <strong>material educativo</strong>. Não é dispositivo médico, não diagnostica, não prescreve e <strong>não substitui</strong> a orientação da sua equipe de saúde. Nenhuma dose de insulina é sugerida aqui — doses são sempre individuais e definidas por quem acompanha sua criança. <strong>Em emergência, ligue 192.</strong></p>
+  </div>
+
+  <h3>Referências</h3>
+  <ol class="refs">
+    <li>SOCIEDADE BRASILEIRA DE ENDOCRINOLOGIA E METABOLOGIA — REGIONAL SÃO PAULO. Diretoria de Comunicação. <strong>Guia educacional para população: Diabetes.</strong> São Paulo: Gengibre Comunicação, 2025. E-book. ISBN 978-65-986752-1-9. — <em>fonte de toda conduta clínica citada.</em></li>
+    <li><strong>DiabetesCast #32</strong> — "A rotina e os desafios emocionais de quem cuida de criança com diabetes tipo 1", com Débora Gomez (psicóloga e mãe) e Eloísa Malieri.</li>
+    <li><strong>"Yago (3 anos) e Thalia"</strong> — primeiro sensor e educação em diabetes.</li>
+    <li><strong>"Raising A Child with Type 1 Diabetes"</strong> — entrevista com Shannon Boggs.</li>
+    <li><strong>"My child was diagnosed with T1D"</strong> — relato de diagnóstico.</li>
+    <li><strong>"Living with Pediatric Type 1 Diabetes: Maximus' Story"</strong>.</li>
+    <li><strong>"Adapting to a different way of life"</strong> — família da Libby.</li>
+    <li><strong>"As Aventuras da Clarita &amp; Tetê"</strong> — viver com diabetes tipo 1.</li>
+    <li><strong>"O que não te contam sobre diabetes tipo 1"</strong> — sobre o custo do tratamento.</li>
+  </ol>
+  <p class="small">Materiais 2 a 9 disponibilizados no Moodle do CI-IA Saúde. As transcrições integrais estão arquivadas na documentação do projeto.</p>
+
+  <p class="small" style="margin-top:8mm">Doce Cuidado · Equipe Synapse · 2026 · Distribuição livre para famílias, escolas e serviços de saúde.</p>
+</section>
+
+</body>
+</html>

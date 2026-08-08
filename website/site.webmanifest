@@ -1,0 +1,22 @@
+{
+  "name": "Doce Cuidado",
+  "short_name": "Doce Cuidado",
+  "description": "Calma e segurança para famílias que cuidam de crianças com diabetes.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF7F1",
+  "theme_color": "#FFF7F1",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,15 +1,20 @@
 AddType application/vnd.android.package-archive .apk
 
-# APK é binário — nunca comprimir (gzip corrompe o arquivo e a instalação falha)
+# APK direto → script que valida tamanho (evita servir arquivo truncado de 10 MB)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^Doce-Cuidado\.apk$ baixar.php [L,QSA]
+</IfModule>
+
+# APK é binário — nunca comprimir
 <IfModule mod_deflate.c>
   SetEnvIfNoCase Request_URI \.apk$ no-gzip dont-vary
+  SetEnvIfNoCase Request_URI baixar\.php$ no-gzip dont-vary
 </IfModule>
 
 <IfModule mod_headers.c>
-  <FilesMatch "\.apk$">
-    Header set Content-Type "application/vnd.android.package-archive"
+  <FilesMatch "\.(apk|php)$">
     Header unset Content-Encoding
     Header set Accept-Ranges bytes
-    Header set Cache-Control "public, max-age=3600"
   </FilesMatch>
 </IfModule>

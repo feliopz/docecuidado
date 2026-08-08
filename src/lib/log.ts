@@ -43,6 +43,34 @@ function truncate(s: string | undefined, n: number): string | undefined {
   return t.length > n ? t.slice(0, n) : t;
 }
 
+/**
+ * Turn any thrown value into a verbose, human-readable string. Supabase /
+ * Postgrest / Functions errors are plain objects (not Error instances), so the
+ * old `String(error)` produced "[object Object]". This pulls out the useful
+ * fields (message, code, details, hint, status) and falls back to JSON.
+ */
+export function serializeError(error: unknown): string {
+  if (error == null) return 'unknown';
+  if (typeof error === 'string') return error;
+  if (typeof error === 'object') {
+    const e = error as Record<string, unknown>;
+    const parts: string[] = [];
+    const push = (k: string, v: unknown) => { if (v != null && v !== '') parts.push(`${k}=${String(v)}`); };
+    push('msg', e.message);
+    push('code', e.code);
+    push('status', (e as { status?: unknown }).status ?? (e as { statusCode?: unknown }).statusCode);
+    push('details', e.details);
+    push('hint', e.hint);
+    if (!parts.length && e.name) push('name', e.name);
+    if (parts.length) return parts.join(' | ');
+    try {
+      const json = JSON.stringify(e, Object.getOwnPropertyNames(e));
+      if (json && json !== '{}') return json;
+    } catch { /* fall through */ }
+  }
+  return String(error);
+}
+
 async function enqueue(entry: LogEntry): Promise<void> {
   try {
     const raw = await AsyncStorage.getItem(QUEUE_KEY);
@@ -108,7 +136,7 @@ export async function logEvent(
     level: opts.level ?? 'info',
     event: truncate(event, 80) || 'event',
     area: truncate(opts.area, 60),
-    detail: truncate(opts.detail, 300),
+    detail: truncate(opts.detail, 1000),
     provider: opts.provider ?? null,
     ok: opts.ok ?? null,
     client_ts: new Date().toISOString(),
@@ -122,8 +150,7 @@ export async function logEvent(
 }
 
 export function logError(scope: string, error: unknown): void {
-  const detail = error instanceof Error ? error.message : String(error);
-  void logEvent(scope, { level: 'error', detail });
+  void logEvent(scope, { level: 'error', detail: serializeError(error) });
 }
 
 export function logInfo(scope: string, message: string): void {

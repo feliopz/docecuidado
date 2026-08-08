@@ -6,7 +6,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APK="${1:-$ROOT/website/downloads/Doce-Cuidado.apk}"
-PROJECT_REF="SEU_PROJECT_REF"
+PROJECT_REF="${SUPABASE_PROJECT_REF:?defina SUPABASE_PROJECT_REF}"
 SUPABASE_URL="https://${PROJECT_REF}.supabase.co"
 OBJECT_PATH="android/Doce-Cuidado.apk"
 
